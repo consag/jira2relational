@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">
+    <Properties>
+        <Property name="basePath">.</Property>
+    </Properties>
+ 
+    <Appenders>
+        <File name="fileLogger" fileName="${basePath}/${date:yyyyMMdd-HHmmssSSS}-jira2relational.log" append="true">
+            <PatternLayout>
+                <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n</pattern>
+            </PatternLayout>
+        </File>
+ 
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout   pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n" />
+        </Console>
+    </Appenders>
+    <Loggers>
+<!--        <Logger name="nl.jacbeekers" level="debug" additivity="true">
+            <appender-ref ref="fileLogger" level="debug" />
+        </Logger>
+        -->
+        <Root level ="debug">
+            <appender-ref ref="fileLogger" level="debug" />
+            <appender-ref ref="console" level="debug" />"
+        </Root>
+    </Loggers>
+</Configuration>
