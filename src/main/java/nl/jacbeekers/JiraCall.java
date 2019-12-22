@@ -25,22 +25,29 @@
 
 package nl.jacbeekers;
 
-import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.google.gson.Gson;
 import nl.jacbeekers.jira.IssueResponse;
-import nl.jacbeekers.jira.Status;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.*;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import javax.net.ssl.SSLContext;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -88,9 +95,26 @@ public class JiraCall {
     public HttpClient createHttpClient() {
         BasicCookieStore basicCookieStore = new BasicCookieStore();
         setBasicCookieStore(basicCookieStore);
+        TrustStrategy acceptingTrustStrategy = (cert, authType) -> true;
+        SSLContext sslContext=null;
+        try {
+            sslContext = SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy).build();
+        } catch(Exception e) {
+            logError(Constants.LOGIN_FAILED, "SSL exception occurred: " + e.toString());
+        }
+
+        SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext,
+                NoopHostnameVerifier.INSTANCE);
+        Registry<ConnectionSocketFactory> socketFactoryRegistry =
+                RegistryBuilder.<ConnectionSocketFactory> create()
+                        .register("https", sslSocketFactory)
+                        .register("http", new PlainConnectionSocketFactory())
+                        .build();
+
          HttpClient httpClient = HttpClientBuilder
                 .create()
                 .setDefaultCookieStore(basicCookieStore)
+                 .setSSLSocketFactory(sslSocketFactory)
                 .build();
         setHttpClient(httpClient);
         return httpClient;
@@ -101,6 +125,22 @@ public class JiraCall {
         setBasicCookieStore(basicCookieStore);
         HttpClient httpClient = null;
 
+        TrustStrategy acceptingTrustStrategy = (cert, authType) -> true;
+        SSLContext sslContext=null;
+        try {
+            sslContext = SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy).build();
+        } catch(Exception e) {
+            logError(Constants.LOGIN_FAILED, "SSL exception occurred: " + e.toString());
+        }
+
+        SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext,
+                NoopHostnameVerifier.INSTANCE);
+        Registry<ConnectionSocketFactory> socketFactoryRegistry =
+                RegistryBuilder.<ConnectionSocketFactory> create()
+                        .register("https", sslSocketFactory)
+                        .register("http", new PlainConnectionSocketFactory())
+                        .build();
+
         if(proxyHostname == null) {
             httpClient = createHttpClient();
         } else {
@@ -110,6 +150,7 @@ public class JiraCall {
                     .create()
                     .setProxy(proxy)
                     .setDefaultCookieStore(basicCookieStore)
+                    .setSSLSocketFactory(sslSocketFactory)
                     .build();
         }
 

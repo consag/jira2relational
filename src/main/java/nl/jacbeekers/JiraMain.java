@@ -32,7 +32,7 @@ import java.util.ArrayList;
 public class JiraMain {
     public static void usage(org.apache.log4j.Logger logger) {
         logger.info("Usage:");
-        logger.info(JiraMain.class.getName() +" <loginURL> <username> <password> <queryURL> <mainFacet> [maxNrRecords]" );
+        logger.info(JiraMain.class.getName() +" <loginURL> <username> <password> <queryURL> [proxyHostname] [proxyPortnumber]" );
         logger.info("where:");
         logger.info("  <loginURL> is the complete login URL for Jira, including http(s), hostname, port.");
         logger.info("  <username> is the Jira username to be used.");
@@ -52,9 +52,13 @@ public class JiraMain {
         String username = args[1];
         String password = args[2];
         String queryURL = args[3];
-        String proxyHostname = args[4];
-        int proxyPortnumber = Integer.parseInt(args[5]);
+        String proxyHostname=null;
+        int proxyPortnumber=0;
 
+        if(args.length > 4) {
+            proxyHostname = args[4];
+            proxyPortnumber = Integer.parseInt(args[5]);
+        }
         JiraCall jiraCall =null;
 
         jiraCall = new JiraCall();
@@ -64,8 +68,8 @@ public class JiraMain {
 
         //Create HttpClient
         System.out.println("Getting http client...");
-        jiraCall.createHttpClient();
-//        jiraCall.createHttpClient(proxyHostname, proxyPortnumber);
+//        jiraCall.createHttpClient();
+        jiraCall.createHttpClient(proxyHostname, proxyPortnumber);
         System.out.println("Logging in...");
         //login
         jiraCall.login(username, password);

@@ -5,7 +5,6 @@ import java.util.List;
 import com.atlassian.jira.rest.client.api.domain.*;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import com.sun.javaws.progress.Progress;
 
 public class Fields {
 
