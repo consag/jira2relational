@@ -73,6 +73,11 @@ public class JiraCall {
     private String queryURL = Constants.NOT_PROVIDED;
     private IssueResponse issueResponse;
 
+    // Create an issue
+    private String projectName = Constants.NOT_PROVIDED;
+    private String issueTypeId = Constants.NOT_PROVIDED;
+    private String issueTypeName = Constants.NOT_PROVIDED;
+
     /***
      *
      * @param username
@@ -208,6 +213,55 @@ public class JiraCall {
         }
     }
 
+    public boolean projectExists() {
+        HttpResponse httpResponse = null;
+        // GET /rest/api/latest/project/<projectKey>
+        String completeQueryURL = getQueryURL() +"/project/" + getProjectName();
+        httpResponse = doGet(completeQueryURL);
+        int code = processHttpResponse(httpResponse);
+        switch (code) {
+            case HttpStatus.SC_OK:
+                return true;
+            case HttpStatus.SC_NOT_FOUND:
+                return false;
+            default:
+                logError(Constants.PROJECT_CHECK_FAILED, "Project existence check returned HTTP error >" + code + "<.");
+        }
+
+        return false;
+    }
+
+    public boolean projectExists(String projectName) {
+        if(projectName != null) {
+            setProjectName(projectName);
+        }
+        return projectExists();
+    }
+
+    public boolean issueTypeExists() {
+        String procName="issueTypeExists";
+        HttpResponse httpResponse = null;
+        // GET /rest/api/latest/project/<projectKey>
+        String completeQueryURL = getQueryURL() +"/issuetype/" + getIssueTypeId();
+        logDebug(procName, "URL is >" + completeQueryURL +"<.");
+        httpResponse = doGet(completeQueryURL);
+        int code = processHttpResponse(httpResponse);
+        switch (code) {
+            case HttpStatus.SC_OK:
+                return true;
+            case HttpStatus.SC_NOT_FOUND:
+                return false;
+            default:
+                logError(Constants.PROJECT_CHECK_FAILED, "Issue Type existence check returned HTTP error >" + code + "<.");
+        }
+
+        return false;
+    }
+
+    public boolean issueTypeExists(String issueTypeId) {
+        setIssueTypeId(issueTypeId);
+        return  issueTypeExists();
+    }
 
     /***
      *
@@ -215,10 +269,10 @@ public class JiraCall {
     public IssueResponse queryJiraForIssue(String jiraId, ArrayList<String> fields) {
         String procName = "queryJiraForIssue";
         HttpResponse httpResponse = null;
-        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+//        ResponseHandler<String> responseHandler = new BasicResponseHandler();
 
         logDebug(procName + " - Trying to get issue >" + jiraId + "<.");
-        String completeQueryURL = getQueryURL() +"/" + jiraId;
+        String completeQueryURL = getQueryURL() +"/issue/" + jiraId;
         if (fields == null) {
             logDebug("No fields specified. All fields will be retrieved.");
         } else {
@@ -229,19 +283,29 @@ public class JiraCall {
             completeQueryURL +="?fields=" + csv;
             logDebug("Complete URL is >" + completeQueryURL +"<.");
         }
+        httpResponse = doGet(completeQueryURL);
 
-        HttpGet httpGet = new HttpGet(completeQueryURL);
+        return processHttpResponse(jiraId, httpResponse);
+    }
+
+    /***
+     *
+     * @param theURL to GET
+     * @return HttpResponse
+     */
+    private HttpResponse doGet(String theURL) {
+        HttpResponse httpResponse = null;
+        HttpGet httpGet = new HttpGet(theURL);
 
         try {
             httpResponse = getHttpClient().execute(httpGet);
         } catch (IOException e) {
             logError(Constants.QUERY_FAILED, "Exception occurred during query request. Exception: " + e.toString());
         }
-
-        return processHttpResponse(jiraId, httpResponse);
+        return httpResponse;
     }
 
-    private void processHttpResponse(HttpResponse httpResponse) {
+    private int processHttpResponse(HttpResponse httpResponse) {
         int statusCode = httpResponse.getStatusLine()
                 .getStatusCode();
 
@@ -256,6 +320,7 @@ public class JiraCall {
                 logError(Constants.QUERY_FAILED, "An HTTP error was returned: " + statusCode);
         }
 
+        return statusCode;
     }
 
     private IssueResponse processHttpResponse(String jiraId, HttpResponse httpResponse) {
@@ -414,6 +479,35 @@ public class JiraCall {
         logError(resultCode, msg);
     }
 
+    public String getResponse() {
+        return response;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
+    public void setIssueTypeId(String issueTypeId) {
+        this.issueTypeId = issueTypeId;
+    }
+    public String getIssueTypeId() {
+        return issueTypeId;
+    }
+
+    public void setIssueTypeName(String issueTypeName) {
+        this.issueTypeName = issueTypeName;
+    }
+    public String getIssueTypeName() {
+        return issueTypeName;
+    }
 
     //convenience getters
     public String getStatusName() {

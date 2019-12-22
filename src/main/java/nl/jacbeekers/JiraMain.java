@@ -85,9 +85,28 @@ public class JiraMain {
         ArrayList<String> fields = new ArrayList<String>();
         fields.add("status");
         fields.add("summary");
-        jiraCall.queryJiraForIssue("DQIM-11591", fields); // all fields
+        jiraCall.queryJiraForIssue("DQIM-11591", fields); // null = all fields
         logger.info(jiraCall.getResultCode());
         logger.info(jiraCall.getResultMessage());
+
+        System.out.println("Creating an issue for project DQIM...");
+        String projectName ="DQIM";
+        jiraCall.setProjectName(projectName);
+        if(jiraCall.projectExists()) {
+            System.out.println("Project >" + projectName +"< exists.");
+            String issueTypeId = "14500";
+            jiraCall.setIssueTypeId(issueTypeId);
+                //"issuetype":{"self":"https:\/\/jira.bb8-ta.aws.abnamro.org\/rest\/api\/2\/issuetype\/14500","id":"14500","description":"Represents a data attribute (source or consumer)","iconUrl":"https:\/\/jira.bb8-ta.aws.abnamro.org\/secure\/viewavatar?size=xsmall&avatarId=44864&avatarType=issuetype","name":"Data Attribute","subtask":false,"avatarId":44864}
+                //issueType
+                //id=14500
+                //description=Represents a data attribute (source or consumer)
+                //name=Data Attribute
+
+        } else {
+            System.out.println("Project >" + projectName +"< not found. You might not have access to it or an HTTP Error occurred.");
+        }
+
+
 
         /*
         //PR environment

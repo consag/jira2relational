@@ -41,6 +41,8 @@ public class Constants {
     public static final String POST_FAILED ="API-002";
     public static final String QUERY_FAILED ="API-003";
     public static final String DATA_STRUCTURE_ERROR ="API-004";
+    public static final String PROJECT_CHECK_FAILED = "API-005";
+    public static final String ISSUETYPE_RETRIEVAL_FAILED = "API-006";
 
     Map results = new HashMap();
     public static Map<String, String> result;
@@ -55,6 +57,8 @@ public class Constants {
         result.put(NOT_FOUND, "Item could not be found");
         result.put(QUERY_FAILED, "Query failed");
         result.put(DATA_STRUCTURE_ERROR, "Received data does not match received fiels.");
+        result.put(PROJECT_CHECK_FAILED, "GET request to check project key failed.");
+        result.put(ISSUETYPE_RETRIEVAL_FAILED, "GET request to retrieve Project Issue Types failed.");
     }
 
     //true/false
