@@ -24,6 +24,9 @@
  */
 package nl.jacbeekers;
 
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -73,12 +76,20 @@ public class JiraMain {
         System.out.println("Logging in...");
         //login
         jiraCall.login(username, password);
-        logger.info(jiraCall.getResultCode());
-        logger.info(jiraCall.getResultMessage());
+        logger.info(jiraCall.getLogging().getResultCode());
+        logger.info(jiraCall.getLogging().getResultMessage());
 
-        if (!Constants.OK.equals(jiraCall.getResultCode())) {
+        if (!Constants.OK.equals(jiraCall.getLogging().getResultCode())) {
             return;
         }
+        String projectName ="DQIM";
+        jiraCall.setProjectName(projectName);
+
+        System.out.println("Getting issue type...");
+        String issueTypeId = "14500";
+        String issueTypeName ="Data Element";
+        jiraCall.setIssueTypeId(issueTypeId);
+        jiraCall.setIssueTypeName(issueTypeName);
 
         System.out.println("Query for issue DQIM-11591...");
         //Test environment
@@ -86,16 +97,21 @@ public class JiraMain {
         fields.add("status");
         fields.add("summary");
         jiraCall.queryJiraForIssue("DQIM-11591", fields); // null = all fields
-        logger.info(jiraCall.getResultCode());
-        logger.info(jiraCall.getResultMessage());
+        logger.info(jiraCall.getLogging().getResultCode());
+        logger.info(jiraCall.getLogging().getResultMessage());
 
         System.out.println("Creating an issue for project DQIM...");
-        String projectName ="DQIM";
-        jiraCall.setProjectName(projectName);
         if(jiraCall.projectExists()) {
             System.out.println("Project >" + projectName +"< exists.");
-            String issueTypeId = "14500";
-            jiraCall.setIssueTypeId(issueTypeId);
+//            String issueTypeId = "14500";
+//            String issueTypeName ="Data Attribute";
+//            jiraCall.setIssueTypeId(issueTypeId);
+//            jiraCall.setIssueTypeName(issueTypeName);
+            if(jiraCall.issueTypeExists()) {
+                System.out.println("Issue type exists.");
+            } else {
+                System.out.println("Issue type does not exist.");
+            }
                 //"issuetype":{"self":"https:\/\/jira.bb8-ta.aws.abnamro.org\/rest\/api\/2\/issuetype\/14500","id":"14500","description":"Represents a data attribute (source or consumer)","iconUrl":"https:\/\/jira.bb8-ta.aws.abnamro.org\/secure\/viewavatar?size=xsmall&avatarId=44864&avatarType=issuetype","name":"Data Attribute","subtask":false,"avatarId":44864}
                 //issueType
                 //id=14500
@@ -106,7 +122,30 @@ public class JiraMain {
             System.out.println("Project >" + projectName +"< not found. You might not have access to it or an HTTP Error occurred.");
         }
 
+        // Regardless of the above outcome, create a Jira issue
+        JiraManageIssue jiraManagementIssue = new JiraManageIssue(proxyHostname, proxyPortnumber);
+        jiraManagementIssue.setProjectName("DQIM");
+        jiraManagementIssue.setIssueTypeId("14500");
+        jiraManagementIssue.setIssueTypeName("Data Attribute");
+        jiraManagementIssue.setSummary("IDQ Jira API tryout");
+        jiraManagementIssue.setReportingDepartmentName("Risk Management");
 
+        jiraManagementIssue.getJiraConnectivity().setQueryURL(queryURL);
+        jiraManagementIssue.getJiraConnectivity().setLoginURL(loginURL);
+        jiraManagementIssue.getJiraConnectivity().setUsername(username);
+        jiraManagementIssue.getJiraConnectivity().setPassword(password);
+        jiraManagementIssue.getJiraConnectivity().setProxyHostname(proxyHostname);
+        jiraManagementIssue.getJiraConnectivity().setProxyPortnumber(proxyPortnumber);
+        jiraManagementIssue.getJiraConnectivity().login(username, password);
+//        jiraManagementIssue.setHttpClient(jiraManagementIssue.getJiraConnectivity().getHttpClient());
+        int rc = jiraManagementIssue.createIssue();
+        if (rc == HttpStatus.SC_CREATED) {
+            System.out.println("Issue created with id >" + jiraManagementIssue.getCreatedIssueResponse().getId()+ "< and key >"
+                    + jiraManagementIssue.getCreatedIssueResponse().getKey() + "<.");
+        }
+
+
+        jiraCall.close();
 
         /*
         //PR environment

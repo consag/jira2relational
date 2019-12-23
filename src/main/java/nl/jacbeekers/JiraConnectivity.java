@@ -25,13 +25,15 @@
 
 package nl.jacbeekers;
 
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import nl.jacbeekers.jira.IssueResponse;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -40,7 +42,11 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.cookie.Cookie;
-import org.apache.http.impl.client.*;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
@@ -48,19 +54,21 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import javax.net.ssl.SSLContext;
-import java.io.*;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.ListIterator;
 
-public class JiraCall {
-    private static final org.apache.log4j.Logger logger = Logger.getLogger(JiraCall.class.getName());
-
-    private String resultCode = Constants.OK;
-    private String resultMessage = Constants.getResultMessage(resultCode);
+public class JiraConnectivity {
+    private Logging logging = new Logging(Logger.getLogger(JiraConnectivity.class.getName()));
 
     // httpClient
-    HttpClient httpClient;
+    CloseableHttpClient httpClient;
     BasicCookieStore basicCookieStore;
 
     // response
@@ -78,6 +86,10 @@ public class JiraCall {
     private String issueTypeId = Constants.NOT_PROVIDED;
     private String issueTypeName = Constants.NOT_PROVIDED;
 
+    // Proxy
+    private String proxyHostname = null;
+    private int proxyPortnumber = 0;
+
     /***
      *
      * @param username
@@ -90,14 +102,14 @@ public class JiraCall {
         setPassword(password);
         loginRequest();
 
-        return getResultCode();
+        return getLogging().getResultCode();
     }
 
 
     /***
      * Build the httpClient
      */
-    public HttpClient createHttpClient() {
+    public CloseableHttpClient createHttpClient() {
         BasicCookieStore basicCookieStore = new BasicCookieStore();
         setBasicCookieStore(basicCookieStore);
         TrustStrategy acceptingTrustStrategy = (cert, authType) -> true;
@@ -105,7 +117,7 @@ public class JiraCall {
         try {
             sslContext = SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy).build();
         } catch(Exception e) {
-            logError(Constants.LOGIN_FAILED, "SSL exception occurred: " + e.toString());
+            getLogging().logError(Constants.LOGIN_FAILED, "SSL exception occurred: " + e.toString());
         }
 
         SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext,
@@ -116,26 +128,30 @@ public class JiraCall {
                         .register("http", new PlainConnectionSocketFactory())
                         .build();
 
-         HttpClient httpClient = HttpClientBuilder
+        Header header = new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+        List<Header> defaultHeaders = Lists.newArrayList(header);
+
+        CloseableHttpClient httpClient = HttpClientBuilder
                 .create()
                 .setDefaultCookieStore(basicCookieStore)
                  .setSSLSocketFactory(sslSocketFactory)
+                 .setDefaultHeaders(defaultHeaders)
                 .build();
         setHttpClient(httpClient);
         return httpClient;
     }
 
-    public void createHttpClient(String proxyHostname, int proxyPortnumber) {
+    public CloseableHttpClient createHttpClient(String proxyHostname, int proxyPortnumber) {
         BasicCookieStore basicCookieStore = new BasicCookieStore();
         setBasicCookieStore(basicCookieStore);
-        HttpClient httpClient = null;
+        CloseableHttpClient httpClient = null;
 
         TrustStrategy acceptingTrustStrategy = (cert, authType) -> true;
         SSLContext sslContext=null;
         try {
             sslContext = SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy).build();
         } catch(Exception e) {
-            logError(Constants.LOGIN_FAILED, "SSL exception occurred: " + e.toString());
+            getLogging().logError(Constants.LOGIN_FAILED, "SSL exception occurred: " + e.toString());
         }
 
         SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext,
@@ -145,28 +161,32 @@ public class JiraCall {
                         .register("https", sslSocketFactory)
                         .register("http", new PlainConnectionSocketFactory())
                         .build();
+        Header header = new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+        List<Header> defaultHeaders = Lists.newArrayList(header);
 
         if(proxyHostname == null) {
             httpClient = createHttpClient();
         } else {
-            logDebug("Using proxy >" + proxyHostname +"< with port >" + proxyPortnumber +"<.");
+            getLogging().logDebug("Using proxy >" + proxyHostname +"< with port >" + proxyPortnumber +"<.");
             HttpHost proxy = new HttpHost(proxyHostname, proxyPortnumber);
             httpClient = HttpClientBuilder
                     .create()
                     .setProxy(proxy)
                     .setDefaultCookieStore(basicCookieStore)
                     .setSSLSocketFactory(sslSocketFactory)
+                    .setDefaultHeaders(defaultHeaders)
                     .build();
         }
 
         setHttpClient(httpClient);
+        return httpClient;
     }
 
-    private void setHttpClient(HttpClient httpClient) {
+    private void setHttpClient(CloseableHttpClient httpClient) {
         this.httpClient = httpClient;
     }
 
-    public HttpClient getHttpClient() {
+    public CloseableHttpClient getHttpClient() {
         return this.httpClient;
     }
 
@@ -177,58 +197,96 @@ public class JiraCall {
     /***
      *
      */
-    private void loginRequest() {
+    public void loginRequest() {
         String procName = "loginRequest";
-        HttpResponse httpResponse = null;
+        CloseableHttpResponse httpResponse = null;
         int statusCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
+        getLogging().setResultCode(Constants.OK);
+        getLogging().setResultMessage("No errors encountered.");
+
+        getLogging().logDebug(procName, "Login URL is >" + getLoginURL() +"<.");
         HttpGet httpGet = new HttpGet(getLoginURL());
         String auth = getUsername() + ":" + getPassword();
+        getLogging().logDebug("username is >" + getUsername() +"<.");
+//        logDebug("password is >" + getPassword() +"<.");
+
         byte[] encodedAuth = Base64.encodeBase64(
                 auth.getBytes(StandardCharsets.ISO_8859_1));
         String authHeader = "Basic " + new String(encodedAuth);
         httpGet.setHeader(HttpHeaders.AUTHORIZATION, authHeader);
 
         try {
-            httpResponse = getHttpClient().execute(httpGet);
+            CloseableHttpClient httpClient = getHttpClient();
+            if(httpClient == null) {
+                if(null == getProxyHostname()) {
+                    httpClient = createHttpClient();
+                } else {
+                    httpClient = createHttpClient(getProxyHostname(), getProxyPortnumber());
+                }
+            }
+            if(httpClient == null) {
+                getLogging().logError(Constants.LOGIN_FAILED, "Could not get http client for user >" + getUsername() +"<.");
+                return;
+            }
+            httpResponse = httpClient.execute(httpGet);
             statusCode = httpResponse.getStatusLine()
                     .getStatusCode();
-        } catch (IOException e) {
-            logError(Constants.LOGIN_FAILED, "Exception occurred during login request. Exception: " + e.toString());
-        }
+            if (statusCode != HttpStatus.SC_OK) {
+                getLogging().logError(Constants.LOGIN_FAILED, "Login failed with HTTP code >" + statusCode + "<.");
+            } else {
+                getLogging().logDebug("Login successful.");
+                processHttpResponse( httpResponse);
+                // list cookies
+                List<Cookie> cookieList = basicCookieStore.getCookies();
+                ListIterator<Cookie> cookieListIterator = cookieList.listIterator();
+                while (cookieListIterator.hasNext()) {
+                    Cookie cookie = cookieListIterator.next();
+                    getLogging().logDebug(procName, "Cookie found >" + cookie.getName() + "< with value >" + cookie.getValue() + "<.");
+                }
 
-        if (statusCode != HttpStatus.SC_OK) {
-            logError(Constants.LOGIN_FAILED, "Login failed with HTTP code >" + statusCode + "<.");
-        } else {
-            logDebug("Login successful.");
-            processHttpResponse( httpResponse);
-            // list cookies
-            List<Cookie> cookieList = basicCookieStore.getCookies();
-            ListIterator<Cookie> cookieListIterator = cookieList.listIterator();
-            while (cookieListIterator.hasNext()) {
-                Cookie cookie = cookieListIterator.next();
-                logDebug(procName, "Cookie found >" + cookie.getName() + "< with value >" + cookie.getValue() + "<.");
             }
 
+        } catch (IOException e) {
+            getLogging().logError(Constants.LOGIN_FAILED, "Exception occurred during login request. Exception: " + e.toString());
+        } finally {
+            try {
+                if(null != httpResponse){
+                    httpResponse.close();
+                }
+            } catch (IOException e) {
+                getLogging().logWarning( "Could not close response object for login. Exception: " + e.toString());
+            }
         }
+
     }
 
     public boolean projectExists() {
-        HttpResponse httpResponse = null;
+        CloseableHttpResponse httpResponse = null;
         // GET /rest/api/latest/project/<projectKey>
         String completeQueryURL = getQueryURL() +"/project/" + getProjectName();
+        boolean rc = false;
         httpResponse = doGet(completeQueryURL);
         int code = processHttpResponse(httpResponse);
         switch (code) {
             case HttpStatus.SC_OK:
-                return true;
+                rc= true;
+                break;
             case HttpStatus.SC_NOT_FOUND:
-                return false;
+                rc= false;
+                break;
             default:
-                logError(Constants.PROJECT_CHECK_FAILED, "Project existence check returned HTTP error >" + code + "<.");
+                getLogging().logError(Constants.PROJECT_CHECK_FAILED, "Project existence check returned HTTP error >" + code + "<.");
+                break;
         }
 
-        return false;
+        try {
+            httpResponse.close();
+        } catch(IOException e) {
+            getLogging().logWarning("Could not close response. Exception: " + e.toString());
+        }
+
+        return rc;
     }
 
     public boolean projectExists(String projectName) {
@@ -238,24 +296,46 @@ public class JiraCall {
         return projectExists();
     }
 
+    public String encodeValue(String value) {
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+        }catch (UnsupportedEncodingException e) {
+            getLogging().logError(Constants.ISSUETYPE_RETRIEVAL_FAILED, "Exception occurred encoding string >" + value
+                    +"<. Exception: " + e.toString());
+            return Constants.ISSUETYPE_RETRIEVAL_FAILED;
+        }
+    }
     public boolean issueTypeExists() {
+        boolean rc = false;
         String procName="issueTypeExists";
-        HttpResponse httpResponse = null;
+        CloseableHttpResponse httpResponse = null;
         // GET /rest/api/latest/project/<projectKey>
-        String completeQueryURL = getQueryURL() +"/issuetype/" + getIssueTypeId();
-        logDebug(procName, "URL is >" + completeQueryURL +"<.");
+        // Jira before 8.4:
+        // /rest/api/2/issue/createmeta?projectKeys=JRA&issuetypeNames=Bug&expand=projects.issuetypes.fields
+//        String completeQueryURL = getQueryURL() + "/createmeta?projectKeys=" + getProjectName()
+//                +"&issuetypeNames=" + encodeValue(getIssueTypeName()) + "&expand=projects.issuetypes.fields";
+        String completeQueryURL = getQueryURL() + "/createmeta";
+        getLogging().logDebug(procName, "URL is >" + completeQueryURL +"<.");
         httpResponse = doGet(completeQueryURL);
         int code = processHttpResponse(httpResponse);
         switch (code) {
             case HttpStatus.SC_OK:
-                return true;
+                rc= true;
+                break;
             case HttpStatus.SC_NOT_FOUND:
-                return false;
+                rc= false;
+                break;
             default:
-                logError(Constants.PROJECT_CHECK_FAILED, "Issue Type existence check returned HTTP error >" + code + "<.");
+                getLogging().logError(Constants.PROJECT_CHECK_FAILED, "Issue Type existence check returned HTTP error >" + code + "<.");
+                break;
+        }
+        try {
+            httpResponse.close();
+        } catch(IOException e) {
+            getLogging().logWarning("Could not close response. Exception: " + e.toString());
         }
 
-        return false;
+        return rc;
     }
 
     public boolean issueTypeExists(String issueTypeId) {
@@ -268,20 +348,20 @@ public class JiraCall {
      */
     public IssueResponse queryJiraForIssue(String jiraId, ArrayList<String> fields) {
         String procName = "queryJiraForIssue";
-        HttpResponse httpResponse = null;
+        CloseableHttpResponse httpResponse = null;
 //        ResponseHandler<String> responseHandler = new BasicResponseHandler();
 
-        logDebug(procName + " - Trying to get issue >" + jiraId + "<.");
+        getLogging().logDebug(procName + " - Trying to get issue >" + jiraId + "<.");
         String completeQueryURL = getQueryURL() +"/issue/" + jiraId;
         if (fields == null) {
-            logDebug("No fields specified. All fields will be retrieved.");
+            getLogging().logDebug("No fields specified. All fields will be retrieved.");
         } else {
-            logDebug("Field list provided.");
+            getLogging().logDebug("Field list provided.");
             //Need to add fields as comma-separated list
             String csv = String.join(",", fields);
-            logDebug("Comma separated field list is >" + csv +"<.");
+            getLogging().logDebug("Comma separated field list is >" + csv +"<.");
             completeQueryURL +="?fields=" + csv;
-            logDebug("Complete URL is >" + completeQueryURL +"<.");
+            getLogging().logDebug("Complete URL is >" + completeQueryURL +"<.");
         }
         httpResponse = doGet(completeQueryURL);
 
@@ -293,37 +373,37 @@ public class JiraCall {
      * @param theURL to GET
      * @return HttpResponse
      */
-    private HttpResponse doGet(String theURL) {
-        HttpResponse httpResponse = null;
+    public CloseableHttpResponse doGet(String theURL) {
+        CloseableHttpResponse httpResponse = null;
         HttpGet httpGet = new HttpGet(theURL);
 
         try {
             httpResponse = getHttpClient().execute(httpGet);
         } catch (IOException e) {
-            logError(Constants.QUERY_FAILED, "Exception occurred during query request. Exception: " + e.toString());
+            getLogging().logError(Constants.QUERY_FAILED, "Exception occurred during query request. Exception: " + e.toString());
         }
         return httpResponse;
     }
 
-    private int processHttpResponse(HttpResponse httpResponse) {
+    public int processHttpResponse(CloseableHttpResponse httpResponse) {
         int statusCode = httpResponse.getStatusLine()
                 .getStatusCode();
 
         switch (statusCode) {
             case HttpStatus.SC_OK:
-                logDebug("HTTP request returned an OK.");
+                getLogging().logDebug("HTTP request returned an OK.");
                 break;
             case HttpStatus.SC_NOT_FOUND:
-                logDebug("HTTP request returned a NOT FOUND.");
+                getLogging().logDebug("HTTP request returned a NOT FOUND.");
                 break;
             default:
-                logError(Constants.QUERY_FAILED, "An HTTP error was returned: " + statusCode);
+                getLogging().logError(Constants.QUERY_FAILED, "An HTTP error was returned: " + statusCode);
         }
 
         return statusCode;
     }
 
-    private IssueResponse processHttpResponse(String jiraId, HttpResponse httpResponse) {
+    private IssueResponse processHttpResponse(String jiraId, CloseableHttpResponse httpResponse) {
         processHttpResponse(httpResponse);
 
         IssueResponse issueResponse = null;
@@ -332,35 +412,66 @@ public class JiraCall {
         HttpEntity httpEntity = httpResponse.getEntity();
 
         if (httpEntity == null) {
-            logError(Constants.QUERY_FAILED, "Could not get response content for jira issue >" + jiraId + "<.");
+            getLogging().logError(Constants.QUERY_FAILED, "Could not get response content for jira issue >" + jiraId + "<.");
         } else {
             try {
                 String resultString = EntityUtils.toString(httpEntity);
                 JSONObject jsonObject = new JSONObject(resultString);
-                logDebug("Id is >"+ jsonObject.getString("id") + "<.");
-                logDebug("Key is >"+ jsonObject.getString("key") + "<.");
-                logDebug("Fields content is >"+ jsonObject.getString("fields") + "<.");
+                getLogging().logDebug("Id is >"+ jsonObject.getString("id") + "<.");
+                getLogging().logDebug("Key is >"+ jsonObject.getString("key") + "<.");
+                getLogging().logDebug("Fields content is >"+ jsonObject.getString("fields") + "<.");
                 Gson gson = new Gson();
-                logDebug("Converting response into Java object...");
+                getLogging().logDebug("Converting response into Java object...");
                 issueResponse = gson.fromJson(resultString, IssueResponse.class);
                 setIssueResponse(issueResponse);
-                logDebug("Key in Java object is >" + issueResponse.key +"<.");
-                logDebug("Status id is >" + getStatusId() +"<.");
-                logDebug("Status name is >" + getStatusName() +"<.");
-//                logDebug("Status category id is >" + issueResponse.fields.status.statusCategory.id +"<.");
-//                logDebug("Status category name is >" + issueResponse.fields.status.statusCategory.name +"<.");
-//                logDebug("Status category key is >" + issueResponse.fields.status.statusCategory.key +"<.");
+                getLogging().logDebug("Key in Java object is >" + issueResponse.key +"<.");
+                getLogging().logDebug("Status id is >" + getStatusId() +"<.");
+                getLogging().logDebug("Status name is >" + getStatusName() +"<.");
+//                logging.logDebug("Status category id is >" + issueResponse.fields.status.statusCategory.id +"<.");
+//                logging.logDebug("Status category name is >" + issueResponse.fields.status.statusCategory.name +"<.");
+//                logging.logDebug("Status category key is >" + issueResponse.fields.status.statusCategory.key +"<.");
 
             } catch (IOException e) {
-                logError(Constants.QUERY_FAILED, "Could not parse JSON response. Exception: " + e.toString());
+                getLogging().logError(Constants.QUERY_FAILED, "Could not parse JSON response. Exception: " + e.toString());
             } catch (JSONException j) {
-                logError(Constants.QUERY_FAILED, "JSON Exception: " + j.toString());
+                getLogging().logError(Constants.QUERY_FAILED, "JSON Exception: " + j.toString());
             }
         }
 
         return issueResponse;
     }
 
+    public void close() {
+        try {
+            getHttpClient().close();
+            getLogging().logDebug("HTTP Connection closed.");
+        } catch(IOException e) {
+            getLogging().logWarning("Could not close HTTP Connection. Exception: " + e.toString());
+        }
+    }
+
+    public CloseableHttpResponse doPost(String theURL, String body) {
+        CloseableHttpResponse httpResponse = null;
+        HttpPost httpPost = new HttpPost(theURL);
+        getLogging().logDebug("POST request for URL >" + theURL +"< with body >" + body +"<.");
+
+        try {
+            StringEntity stringEntity = new StringEntity(body);
+            httpPost.setEntity(stringEntity);
+            httpPost.setHeader("Accept", "application/json");
+            httpPost.setHeader("Content-type", "application/json");
+
+            try {
+                httpResponse = getHttpClient().execute(httpPost);
+            } catch (IOException e) {
+                getLogging().logError(Constants.POST_FAILED, "Exception occurred during POST request. Exception: " + e.toString());
+            }
+        } catch (UnsupportedEncodingException e) {
+            getLogging().logError(Constants.CREATEISSUE_FAILED, "Exception converting JSON to Entity. Exception: " + e.toString());
+
+        }
+        return httpResponse;
+    }
 
     /*
         getters setters
@@ -412,73 +523,6 @@ public class JiraCall {
         return formattedTime;
     }
 
-    public String getResultCode() {
-        return this.resultCode;
-    }
-
-    public void setResultCode(String resultCode) {
-        this.resultCode = resultCode;
-    }
-
-    public String getResultMessage() {
-        return this.resultMessage;
-    }
-
-    public void setResultMessage(String resultMessage) {
-        this.resultMessage = resultMessage;
-    }
-
-    //
-    // logging, result handling
-    //
-    private void logVerbose(String msg) {
-        logger.trace(msg);
-    }
-
-    private void logDebug(String procName, String msg) {
-        logger.debug(procName + " - " + msg);
-    }
-
-    private void logDebug(String msg) {
-        logger.debug(msg);
-    }
-
-    private void logWarning(String msg) {
-        logger.warn(msg);
-    }
-
-    private void logError(String resultCode, String msg) {
-        setResult(resultCode, msg);
-        logger.error(msg);
-    }
-
-    private void setResult(String resultCode, String msg) {
-        setResultCode(resultCode);
-        if (msg == null) {
-            setResultMessage(Constants.getResultMessage(resultCode));
-        } else {
-            setResultMessage(Constants.getResultMessage(resultCode)
-                    + ": " + msg);
-        }
-    }
-
-    private void logFatal(String resultCode) {
-        logFatal(resultCode, Constants.getResultMessage(resultCode));
-    }
-
-    private void logFatal(String resultCode, String msg) {
-        setResult(resultCode, msg);
-        logger.fatal(msg);
-    }
-
-    private void failSession(String resultCode) {
-        failSession(resultCode, null);
-    }
-
-    private void failSession(String resultCode, String msg) {
-        logError(resultCode, msg);
-    }
-
     public String getResponse() {
         return response;
     }
@@ -508,6 +552,7 @@ public class JiraCall {
     public String getIssueTypeName() {
         return issueTypeName;
     }
+    public Logging getLogging() { return this.logging; }
 
     //convenience getters
     public String getStatusName() {
@@ -517,6 +562,21 @@ public class JiraCall {
         return getIssueResponse().fields.status.id;
     }
 
+    public String getProxyHostname() {
+        return proxyHostname;
+    }
+
+    public void setProxyHostname(String proxyHostname) {
+        this.proxyHostname = proxyHostname;
+    }
+
+    public int getProxyPortnumber() {
+        return proxyPortnumber;
+    }
+
+    public void setProxyPortnumber(int proxyPortnumber) {
+        this.proxyPortnumber = proxyPortnumber;
+    }
 }
 
 

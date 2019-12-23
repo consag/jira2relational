@@ -139,7 +139,7 @@ public class Fields {
     public IssueType issuetype;
     @SerializedName("customfield_21200")
     @Expose
-    public Object customfield21200;
+    public Object customfield_21200;
     @SerializedName("customfield_19000")
     @Expose
     public Object customfield19000;
@@ -296,5 +296,30 @@ public class Fields {
     @SerializedName("customfield_21404")
     @Expose
     public Object customfield21404;
+
+    public void setProject(Project project) {
+        this.project = project;
+    }
+    public Project getProject() {
+        return this.project;
+    }
+    public void setIssuetype(IssueType issuetype) {
+        this.issuetype = issuetype;
+    }
+    public IssueType getIssuetype() {
+        return this.issuetype;
+    }
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+    public String getSummary() {
+        return this.summary;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    public String getDescription() {
+        return this.description;
+    }
 
 }
