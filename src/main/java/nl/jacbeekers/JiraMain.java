@@ -24,6 +24,8 @@
  */
 package nl.jacbeekers;
 
+import org.apache.commons.cli.*;
+import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -33,96 +35,141 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class JiraMain {
+
+    private static String loginURL;
+    private static String username;
+    private static String password;
+    private static String queryURL;
+    private static String action;
+    private static String proxyHostname=null;
+    private static int proxyPortnumber=0;
+    private static String queryForIssue;
+    private static org.apache.log4j.Logger logger = Logger.getLogger(JiraMain.class.getName());
+
     public static void usage(org.apache.log4j.Logger logger) {
         logger.info("Usage:");
-        logger.info(JiraMain.class.getName() +" <loginURL> <username> <password> <queryURL> [proxyHostname] [proxyPortnumber]" );
+        logger.info(JiraMain.class.getName() +" <loginURL> <username> <password> <queryURL> [proxyHostname] [proxyPortnumber] <action>" );
         logger.info("where:");
         logger.info("  <loginURL> is the complete login URL for Jira, including http(s), hostname, port.");
         logger.info("  <username> is the Jira username to be used.");
         logger.info("  <password> is the password of the Jira username. In this version clear text (unfortunately).");
         logger.info("  <queryURL> is the complete URL for the Jira API queries.");
+        logger.info("  <action> is the action to execute. Choose query or create.");
+        logger.info("     for action=query you need to supply a Jira issue id. ");
     }
 
-    public static void main(String[] args) throws IOException {
-        org.apache.log4j.Logger logger = Logger.getLogger(JiraMain.class.getName());
+    public static void main(String[] args) throws IOException, ParseException {
 
-        if (args.length < 4) {
-            usage(logger);
-            return;
+        // create Options object
+        final Options options = new Options();
+        // add loginurl option
+        options.addOption(new Option("l", "loginurl", true, "Jira login URL."));
+        options.addOption(new Option("q", "queryurl", true, "Jira query URL."));
+        options.addOption(new Option("u", "user", true, "Username"));
+        options.addOption(new Option("p", "password", true, "user password"));
+        options.addOption(new Option("x", "proxy", true, "Proxy hostname"));
+        options.addOption(new Option("1", "proxyport", true, "Proxy port number"));
+        options.addOption(new Option("a", "action", true, "Action to conduct. Has to be >query< or >create<."));
+        options.addOption(new Option("k", "issuekey", true, "Issue key to search for. Only if action=query"));
+
+        CommandLineParser parser = new DefaultParser();
+        CommandLine cmd = parser.parse( options, args);
+
+        loginURL = cmd.getOptionValue('l');
+        username = cmd.getOptionValue('u');
+        password = cmd.getOptionValue('p');
+        queryURL = cmd.getOptionValue('q');
+        action = cmd.getOptionValue('a');
+        proxyHostname=cmd.getOptionValue('x');
+        proxyPortnumber= Integer.parseInt(cmd.getOptionValue('1'));
+        queryForIssue = cmd.getOptionValue('k');
+
+        if(null == action | null == loginURL | null == username | null == password | null == queryURL) {
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp( "JiraMain", options );
+            System.exit(3);
         }
 
-        String loginURL = args[0];
-        String username = args[1];
-        String password = args[2];
-        String queryURL = args[3];
-        String proxyHostname=null;
-        int proxyPortnumber=0;
-
-        if(args.length > 4) {
-            proxyHostname = args[4];
-            proxyPortnumber = Integer.parseInt(args[5]);
+        switch(action) {
+            case "query":
+                    runQuery();
+                break;
+            case "create":
+                break;
+            default:
+                System.out.println("Invalid action specified. Use >query< or >create<.");
+                System.exit(1);
         }
+
+
+        /*
+        //PR environment
+        System.out.println("Query for issue DQIM-11683...");
+        jiraCall.queryJiraForIssue("DQIM-11683", fields); // all fields
+        logger.info(jiraCall.getResultCode());
+        logger.info(jiraCall.getResultMessage());
+*/
+    }
+
+    public static void runQuery() throws IOException {
         JiraCall jiraCall =null;
-
         jiraCall = new JiraCall();
-
         jiraCall.setQueryURL(queryURL);
         jiraCall.setLoginURL(loginURL);
 
-        //Create HttpClient
-        System.out.println("Getting http client...");
-//        jiraCall.createHttpClient();
-        jiraCall.createHttpClient(proxyHostname, proxyPortnumber);
-        System.out.println("Logging in...");
-        //login
-        jiraCall.login(username, password);
-        logger.info(jiraCall.getLogging().getResultCode());
-        logger.info(jiraCall.getLogging().getResultMessage());
+            //Create HttpClient
+            System.out.println("Getting http client...");
+            jiraCall.createHttpClient(proxyHostname, proxyPortnumber);
+            System.out.println("Logging in...");
+            //login
+            jiraCall.login(username, password);
+            logger.info(jiraCall.getLogging().getResultCode());
+            logger.info(jiraCall.getLogging().getResultMessage());
 
-        if (!Constants.OK.equals(jiraCall.getLogging().getResultCode())) {
-            return;
-        }
-        String projectName ="DQIM";
-        jiraCall.setProjectName(projectName);
-
-        System.out.println("Getting issue type...");
-        String issueTypeId = "14500";
-        String issueTypeName ="Data Element";
-        jiraCall.setIssueTypeId(issueTypeId);
-        jiraCall.setIssueTypeName(issueTypeName);
-
-        System.out.println("Query for issue DQIM-11600...");
-        //Test environment
-        ArrayList<String> fields = new ArrayList<String>();
-        fields.add("status");
-        fields.add("summary");
-        //jiraCall.queryJiraForIssue("DQIM-11600", fields); // null = all fields
-        jiraCall.queryJiraForIssue("DQIM-11600", null); // null = all fields
-        logger.info(jiraCall.getLogging().getResultCode());
-        logger.info(jiraCall.getLogging().getResultMessage());
-
-        System.out.println("Creating an issue for project DQIM...");
-        if(jiraCall.projectExists()) {
-            System.out.println("Project >" + projectName +"< exists.");
-//            String issueTypeId = "14500";
-//            String issueTypeName ="Data Attribute";
-//            jiraCall.setIssueTypeId(issueTypeId);
-//            jiraCall.setIssueTypeName(issueTypeName);
-            if(jiraCall.issueTypeExists()) {
-                System.out.println("Issue type exists.");
-            } else {
-                System.out.println("Issue type does not exist.");
+            if (!Constants.OK.equals(jiraCall.getLogging().getResultCode())) {
+                return;
             }
-                //"issuetype":{"self":"https:\/\/jira.bb8-ta.aws.abnamro.org\/rest\/api\/2\/issuetype\/14500","id":"14500","description":"Represents a data attribute (source or consumer)","iconUrl":"https:\/\/jira.bb8-ta.aws.abnamro.org\/secure\/viewavatar?size=xsmall&avatarId=44864&avatarType=issuetype","name":"Data Attribute","subtask":false,"avatarId":44864}
-                //issueType
-                //id=14500
-                //description=Represents a data attribute (source or consumer)
-                //name=Data Attribute
+            String projectName ="DQIM";
+            jiraCall.setProjectName(projectName);
 
-        } else {
-            System.out.println("Project >" + projectName +"< not found. You might not have access to it or an HTTP Error occurred.");
-        }
+            System.out.println("Getting issue type...");
+            String issueTypeId = "14500";
+            String issueTypeName ="Data Element";
+            jiraCall.setIssueTypeId(issueTypeId);
+            jiraCall.setIssueTypeName(issueTypeName);
 
+            System.out.println("Query for issue >" + queryForIssue +"<...");
+            //Test environment
+            ArrayList<String> fields = new ArrayList<String>();
+            fields.add("status");
+            fields.add("summary");
+            int rc = jiraCall.queryJiraForIssue(queryForIssue, fields); // null = all fields
+            System.out.println("Query for Jira issue >" + queryForIssue + "< returned >" + rc + "<.");
+
+//        jiraCall.queryJiraForIssue(queryForIssue, null); // null = all fields
+//            logger.info(jiraCall.getLogging().getResultCode());
+//            logger.info(jiraCall.getLogging().getResultMessage());
+
+            /*
+            System.out.println("Checking project DQIM...");
+            if(jiraCall.projectExists()) {
+                System.out.println("Project >" + projectName +"< exists.");
+                System.out.println("Checking issue type >" + issueTypeName +"<...");
+                if(jiraCall.issueTypeExists()) {
+                    System.out.println("Issue type exists.");
+                } else {
+                    System.out.println("Issue type does not exist.");
+                }
+            } else {
+                System.out.println("Project >" + projectName +"< not found. You might not have access to it or an HTTP Error occurred.");
+            }
+            */
+
+        jiraCall.close();
+
+    }
+
+    public static void createIssue() throws IOException {
         // Regardless of the above outcome, create a Jira issue
         JiraManageIssue jiraManagementIssue = new JiraManageIssue(proxyHostname, proxyPortnumber);
         jiraManagementIssue.setProjectName("DQIM");
@@ -165,21 +212,12 @@ public class JiraMain {
         jiraManagementIssue.getJiraConnectivity().setProxyPortnumber(proxyPortnumber);
         jiraManagementIssue.getJiraConnectivity().login(username, password);
 //        jiraManagementIssue.setHttpClient(jiraManagementIssue.getJiraConnectivity().getHttpClient());
-/*        int rc = jiraManagementIssue.createIssue();
+       int rc = jiraManagementIssue.createIssue();
         if (rc == HttpStatus.SC_CREATED) {
             System.out.println("Issue created with id >" + jiraManagementIssue.getCreatedIssueResponse().getId()+ "< and key >"
                     + jiraManagementIssue.getCreatedIssueResponse().getKey() + "<.");
         }
 
-*/
-        jiraCall.close();
-
-        /*
-        //PR environment
-        System.out.println("Query for issue DQIM-11683...");
-        jiraCall.queryJiraForIssue("DQIM-11683", fields); // all fields
-        logger.info(jiraCall.getResultCode());
-        logger.info(jiraCall.getResultMessage());
-*/
     }
+
 }

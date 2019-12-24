@@ -320,7 +320,7 @@ public class JiraCall {
     /***
      *
      */
-    public IssueResponse queryJiraForIssue(String jiraId, ArrayList<String> fields) {
+    public int queryJiraForIssue(String jiraId, ArrayList<String> fields) {
         String procName = "queryJiraForIssue";
         CloseableHttpResponse httpResponse = null;
 //        ResponseHandler<String> responseHandler = new BasicResponseHandler();
@@ -377,13 +377,15 @@ public class JiraCall {
         return statusCode;
     }
 
-    private IssueResponse processHttpResponse(String jiraId, CloseableHttpResponse httpResponse) {
-        processHttpResponse(httpResponse);
+    private int processHttpResponse(String jiraId, CloseableHttpResponse httpResponse) {
+        int rc = processHttpResponse(httpResponse);
 
         IssueResponse issueResponse = null;
-//        jiraIssue.setKey(jiraId);
-
         HttpEntity httpEntity = httpResponse.getEntity();
+        if(rc != HttpStatus.SC_OK) {
+            getLogging().logError(Constants.QUERY_FAILED,"Issue could not be found.");
+            return rc;
+        }
 
         if (httpEntity == null) {
             getLogging().logError(Constants.QUERY_FAILED, "Could not get response content for jira issue >" + jiraId + "<.");
@@ -412,7 +414,7 @@ public class JiraCall {
             }
         }
 
-        return issueResponse;
+        return rc;
     }
 
     public void close() {
