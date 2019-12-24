@@ -139,7 +139,7 @@ public class Fields {
     public IssueType issuetype;
     @SerializedName("customfield_21200")
     @Expose
-    public Object customfield_21200;
+    public BusinessLine customfield21200;
     @SerializedName("customfield_19000")
     @Expose
     public Object customfield19000;
@@ -217,7 +217,7 @@ public class Fields {
     public Object customfield22113;
     @SerializedName("customfield_22111")
     @Expose
-    public List<Object> customfield22111 = null;
+    public List<ReportingDepartment> customfield22111 = null;
     @SerializedName("customfield_22110")
     @Expose
     public Object customfield22110;
@@ -322,4 +322,17 @@ public class Fields {
         return this.description;
     }
 
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+    public Priority getPriority() {
+        return this.priority;
+    }
+
+    public void setBusinessLine(BusinessLine businessLine) {
+        this.customfield21200 = businessLine;
+    }
+    public BusinessLine getBusinessLine() {
+        return this.customfield21200;
+    }
 }

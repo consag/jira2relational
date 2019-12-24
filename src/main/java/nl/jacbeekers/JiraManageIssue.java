@@ -3,21 +3,14 @@ package nl.jacbeekers;
 import com.google.gson.Gson;
 import nl.jacbeekers.jira.*;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Date;
 
 public class JiraManageIssue {
     private Logging logging = new Logging(Logger.getLogger(JiraManageIssue.class.getName()));
@@ -31,7 +24,21 @@ public class JiraManageIssue {
     private String issueTypeName;
     private String summary;
     private String description;
+    private Priority priority;
+    private String priorityName;
+    private String businessLineName;
+    private Region region;
+    private String regionName;
     private String ReportingDepartmentName;
+    private Assignee assignee;
+    private String assigneeName;
+    private String dataElement;
+    private String impactDescription;
+    private String acceptanceCriteria;
+    private String country;
+    private String dataOwner;
+    private Date dueDate;
+
     private CreatedIssueResponse createdIssueResponse;
 
     public JiraManageIssue() {
@@ -73,18 +80,34 @@ public class JiraManageIssue {
         CloseableHttpResponse httpResponse;
         JiraConnectivity jiraConnectivity = getJiraConnectivity();
         String completeQueryURL = jiraConnectivity.getQueryURL() +"/issue/";
+
+        // Constructing the issue
+        // Code translates from provided attributes to needed Java/Jira attributes
         Issue issue = new Issue();
         Fields fields = new Fields();
         issue.setFields(fields);
+        // Base attributes
+        fields.setSummary(getSummary());
+        fields.setDescription(getDescription());
+        // Issue Type
         fields.setIssuetype(new IssueType(getIssueTypeId(), getIssueTypeName()));
+        // Project
         fields.setProject(new Project());
         fields.getProject().setKey(getProjectName());
+        // Priority
+        fields.setPriority(new Priority());
+        fields.getPriority().setName(getPriorityName());
+        // Business Line and its region
+        fields.setBusinessLine(new BusinessLine());
+        fields.getBusinessLine().setValue(getBusinessLineName());
+        fields.getBusinessLine().setRegion(new Region());
+        fields.getBusinessLine().getRegion().setValue(getRegionName());
 
-        fields.setSummary(getSummary());
-        fields.description ="This issue can be deleted. It is just an IDQ tryout for the Jira API";
-        ReportingDepartment reportingDepartment = new ReportingDepartment();
-        reportingDepartment.setValue("Risk Management");
-        fields.customfield_21200 = reportingDepartment;
+//        ReportingDepartment reportingDepartment = new ReportingDepartment();
+//        reportingDepartment.setValue("Risk Management");
+//        List<ReportingDepartment> reportingDepartmentList = new ArrayList<ReportingDepartment>();
+//        reportingDepartmentList.add(reportingDepartment);
+//        fields.customfield22111 = reportingDepartmentList;
 
         getLogging().logDebug(procName, "issue type is >" + getIssueTypeName() +"<.");
 //        issue.getFields().setIssuetype(new nl.jacbeekers.jira.IssueType(getIssueType().getId(), getIssueType().getName()));
@@ -233,5 +256,109 @@ public class JiraManageIssue {
 
     public CreatedIssueResponse getCreatedIssueResponse() {
         return createdIssueResponse;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+
+    public String getBusinessLineName() {
+        return businessLineName;
+    }
+
+    public void setBusinessLineName(String businessLineName) {
+        this.businessLineName = businessLineName;
+    }
+
+    public Assignee getAssignee() {
+        return assignee;
+    }
+
+    public void setAssignee(Assignee assignee) {
+        this.assignee = assignee;
+    }
+
+    public String getDataElement() {
+        return dataElement;
+    }
+
+    public void setDataElement(String dataElement) {
+        this.dataElement = dataElement;
+    }
+
+    public String getImpactDescription() {
+        return impactDescription;
+    }
+
+    public void setImpactDescription(String impactDescription) {
+        this.impactDescription = impactDescription;
+    }
+
+    public String getAcceptanceCriteria() {
+        return acceptanceCriteria;
+    }
+
+    public void setAcceptanceCriteria(String acceptanceCriteria) {
+        this.acceptanceCriteria = acceptanceCriteria;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getDataOwner() {
+        return dataOwner;
+    }
+
+    public void setDataOwner(String dataOwner) {
+        this.dataOwner = dataOwner;
+    }
+
+    public Date getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(Date dueDate) {
+        this.dueDate = dueDate;
+    }
+
+    public String getAssigneeName() {
+        return assigneeName;
+    }
+
+    public void setAssigneeName(String assigneeName) {
+        this.assigneeName = assigneeName;
+    }
+
+    public String getPriorityName() {
+        return priorityName;
+    }
+
+    public void setPriorityName(String priorityName) {
+        this.priorityName = priorityName;
+    }
+
+    public Region getRegion() {
+        return this.region;
+    }
+
+    public void setRegion(Region region) {
+        this.region = region;
+    }
+
+    public String getRegionName() {
+        return regionName;
+    }
+
+    public void setRegionName(String regionName) {
+        this.regionName = regionName;
     }
 }

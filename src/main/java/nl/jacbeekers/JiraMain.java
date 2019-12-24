@@ -24,13 +24,13 @@
  */
 package nl.jacbeekers;
 
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class JiraMain {
     public static void usage(org.apache.log4j.Logger logger) {
@@ -91,12 +91,13 @@ public class JiraMain {
         jiraCall.setIssueTypeId(issueTypeId);
         jiraCall.setIssueTypeName(issueTypeName);
 
-        System.out.println("Query for issue DQIM-11591...");
+        System.out.println("Query for issue DQIM-11600...");
         //Test environment
         ArrayList<String> fields = new ArrayList<String>();
         fields.add("status");
         fields.add("summary");
-        jiraCall.queryJiraForIssue("DQIM-11591", fields); // null = all fields
+        //jiraCall.queryJiraForIssue("DQIM-11600", fields); // null = all fields
+        jiraCall.queryJiraForIssue("DQIM-11600", null); // null = all fields
         logger.info(jiraCall.getLogging().getResultCode());
         logger.info(jiraCall.getLogging().getResultMessage());
 
@@ -125,10 +126,36 @@ public class JiraMain {
         // Regardless of the above outcome, create a Jira issue
         JiraManageIssue jiraManagementIssue = new JiraManageIssue(proxyHostname, proxyPortnumber);
         jiraManagementIssue.setProjectName("DQIM");
+
+        jiraManagementIssue.setSummary("IDQ Jira API tryout");
+        jiraManagementIssue.setDescription("Dummy item from IDQ for API testing purpose.");
+        //if CDE then high, else medium
+        jiraManagementIssue.setPriorityName("High");
+        //business line depends on LoGS dataset - customfield_21200
+        jiraManagementIssue.setBusinessLineName("Risk Management");
+        // customfield_22111 or customfield_22100
+        jiraManagementIssue.setReportingDepartmentName("Risk Management");
+        // Assignee = Delegated Data Owner - customfield_20400
+        jiraManagementIssue.setAssigneeName("Ton Reurts");
+        // Data Element = Data Attribute - customfield_19802
+        jiraManagementIssue.setDataElement("SBI code");
+        // Impact Description - customfield_15702
+        jiraManagementIssue.setImpactDescription("Please specify");
+        // Acceptance Criteria = Axon Rule description - customfield_10502
+        jiraManagementIssue.setAcceptanceCriteria("Please specify");
+        // Country = "NL" - customfield_20200
+        jiraManagementIssue.setCountry("NL");
+        // Data Owner - customfield unknown
+        jiraManagementIssue.setDataOwner("Ton Reurts");
+        // Issue Type -
         jiraManagementIssue.setIssueTypeId("14500");
         jiraManagementIssue.setIssueTypeName("Data Attribute");
-        jiraManagementIssue.setSummary("IDQ Jira API tryout");
-        jiraManagementIssue.setReportingDepartmentName("Risk Management");
+        // Due Date
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new Date();
+        System.out.println("Due date set to " + dateFormat.format(date));
+        jiraManagementIssue.setDueDate(date);
+
 
         jiraManagementIssue.getJiraConnectivity().setQueryURL(queryURL);
         jiraManagementIssue.getJiraConnectivity().setLoginURL(loginURL);
@@ -138,13 +165,13 @@ public class JiraMain {
         jiraManagementIssue.getJiraConnectivity().setProxyPortnumber(proxyPortnumber);
         jiraManagementIssue.getJiraConnectivity().login(username, password);
 //        jiraManagementIssue.setHttpClient(jiraManagementIssue.getJiraConnectivity().getHttpClient());
-        int rc = jiraManagementIssue.createIssue();
+/*        int rc = jiraManagementIssue.createIssue();
         if (rc == HttpStatus.SC_CREATED) {
             System.out.println("Issue created with id >" + jiraManagementIssue.getCreatedIssueResponse().getId()+ "< and key >"
                     + jiraManagementIssue.getCreatedIssueResponse().getKey() + "<.");
         }
 
-
+*/
         jiraCall.close();
 
         /*
