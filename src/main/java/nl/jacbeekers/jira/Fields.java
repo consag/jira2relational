@@ -34,7 +34,7 @@ public class Fields {
     public Object customfield16217;
     @SerializedName("customfield_10502")
     @Expose
-    public String customfield10502;
+    public String customfield_10502;
     @SerializedName("customfield_20300")
     @Expose
     public String customfield20300;
@@ -103,7 +103,7 @@ public class Fields {
     public Object customfield12905;
     @SerializedName("customfield_20400")
     @Expose
-    public Object customfield20400;
+    public List<DataOwner> customfield_20400 = null;
     @SerializedName("customfield_22301")
     @Expose
     public Object customfield22301;
@@ -137,9 +137,9 @@ public class Fields {
     @SerializedName("issuetype")
     @Expose
     public IssueType issuetype;
-    @SerializedName("customfield_21200")
+    @SerializedName("customfield_22111")
     @Expose
-    public BusinessLine customfield21200;
+    public List<BusinessLine> customfield_22111;
     @SerializedName("customfield_19000")
     @Expose
     public Object customfield19000;
@@ -148,7 +148,7 @@ public class Fields {
     public Object timespent;
     @SerializedName("customfield_19802")
     @Expose
-    public Object customfield19802;
+    public List<String> customfield_19802;
     @SerializedName("project")
     @Expose
     public Project project;
@@ -215,9 +215,9 @@ public class Fields {
     @SerializedName("customfield_22113")
     @Expose
     public Object customfield22113;
-    @SerializedName("customfield_22111")
+    @SerializedName("customfield_21200")
     @Expose
-    public List<ReportingDepartment> customfield22111 = null;
+    public ReportingDepartment customfield_21200 = null;
     @SerializedName("customfield_22110")
     @Expose
     public Object customfield22110;
@@ -235,7 +235,7 @@ public class Fields {
     public String customfield10012;
     @SerializedName("customfield_15702")
     @Expose
-    public String customfield15702;
+    public String customfield_15702;
     @SerializedName("timetracking")
     @Expose
     public Timetracking timetracking;
@@ -259,7 +259,7 @@ public class Fields {
     public Object customfield22105;
     @SerializedName("customfield_20200")
     @Expose
-    public List<Object> customfield20200 = null;
+    public List<Country> customfield_20200 = null;
     @SerializedName("summary")
     @Expose
     public String summary;
@@ -300,9 +300,11 @@ public class Fields {
     public void setProject(Project project) {
         this.project = project;
     }
+
     public Project getProject() {
         return this.project;
     }
+
     public void setIssuetype(IssueType issuetype) {
         this.issuetype = issuetype;
     }
@@ -329,10 +331,63 @@ public class Fields {
         return this.priority;
     }
 
-    public void setBusinessLine(BusinessLine businessLine) {
-        this.customfield21200 = businessLine;
+    public void setBusinessLine(List<BusinessLine> businessLineList) {
+        this.customfield_22111 = businessLineList;
     }
-    public BusinessLine getBusinessLine() {
-        return this.customfield21200;
+    public List<BusinessLine> getBusinessLine() {
+        return this.customfield_22111;
+    }
+
+    public void setReportingDepartment(ReportingDepartment reportingDepartment) {
+        this.customfield_21200 = reportingDepartment;
+    }
+
+    public ReportingDepartment getReportingDepartment() {
+        return this.customfield_21200;
+    }
+
+    public void setDataOwner(List<DataOwner> dataOwnerList) {
+        this.customfield_20400 = dataOwnerList;
+    }
+
+    public List<DataOwner> getDataOwner() {
+        return customfield_20400;
+    }
+
+    public void setAssignee(Assignee assignee) {
+        this.assignee = assignee;
+    }
+
+    public Assignee getAssignee() {
+        return assignee;
+    }
+
+    public void setDataElement(List<String> dataElementList) {
+        this.customfield_19802 = dataElementList;
+    }
+    public List<String> getDataElement() {
+        return customfield_19802;
+    }
+
+    public void setImpactDescription(String impactDescription) {
+        this.customfield_15702 = impactDescription;
+    }
+    public String getImpactDescription() {
+        return customfield_15702;
+    }
+
+    public String getAcceptanceCriteria() {
+        return customfield_10502;
+    }
+
+    public void setAcceptanceCriteria(String acceptanceCriteria) {
+        this.customfield_10502 = acceptanceCriteria;
+    }
+
+    public List<Country> getCountry() {
+        return customfield_20200;
+    }
+    public void setCountry (List<Country> countryList) {
+        this.customfield_20200 = countryList;
     }
 }

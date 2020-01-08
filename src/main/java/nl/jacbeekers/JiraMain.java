@@ -95,6 +95,7 @@ public class JiraMain {
                     runQuery();
                 break;
             case "create":
+                createIssue();
                 break;
             default:
                 System.out.println("Invalid action specified. Use >query< or >create<.");
@@ -178,22 +179,22 @@ public class JiraMain {
         jiraManagementIssue.setDescription("Dummy item from IDQ for API testing purpose.");
         //if CDE then high, else medium
         jiraManagementIssue.setPriorityName("High");
-        //business line depends on LoGS dataset - customfield_21200
-        jiraManagementIssue.setBusinessLineName("Risk Management");
-        // customfield_22111 or customfield_22100
-        jiraManagementIssue.setReportingDepartmentName("Risk Management");
-        // Assignee = Delegated Data Owner - customfield_20400
-        jiraManagementIssue.setAssigneeName("Ton Reurts");
+        //business line depends on LoGS dataset - customfield_22111
+        jiraManagementIssue.setBusinessLineName("Retail Banking");
+        // customfield_22111 or customfield_21200
+        jiraManagementIssue.setReportingDepartmentName("Commercial Banking");
+        // Assignee = Delegated Data Owner
+        jiraManagementIssue.setAssigneeName("");
         // Data Element = Data Attribute - customfield_19802
         jiraManagementIssue.setDataElement("SBI code");
         // Impact Description - customfield_15702
-        jiraManagementIssue.setImpactDescription("Please specify");
+        jiraManagementIssue.setImpactDescription("Please specify it");
         // Acceptance Criteria = Axon Rule description - customfield_10502
-        jiraManagementIssue.setAcceptanceCriteria("Please specify");
-        // Country = "NL" - customfield_20200
-        jiraManagementIssue.setCountry("NL");
-        // Data Owner - customfield unknown
-        jiraManagementIssue.setDataOwner("Ton Reurts");
+        jiraManagementIssue.setAcceptanceCriteria("Please specify it properly");
+        // Country = "Netherlands" - customfield_20200
+        jiraManagementIssue.setCountry("Netherlands");
+        // Data Owner - customfield_20400
+        jiraManagementIssue.setDataOwner("Fred Bos");
         // Issue Type -
         jiraManagementIssue.setIssueTypeId("14500");
         jiraManagementIssue.setIssueTypeName("Data Attribute");

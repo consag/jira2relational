@@ -30,4 +30,7 @@ public class Assignee {
     @Expose
     public String timeZone;
 
+    public Assignee(String name) {
+        this.name = name;
+    }
 }

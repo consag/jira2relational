@@ -10,7 +10,9 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class JiraManageIssue {
     private Logging logging = new Logging(Logger.getLogger(JiraManageIssue.class.getName()));
@@ -86,28 +88,59 @@ public class JiraManageIssue {
         Issue issue = new Issue();
         Fields fields = new Fields();
         issue.setFields(fields);
+
         // Base attributes
         fields.setSummary(getSummary());
         fields.setDescription(getDescription());
+        fields.setImpactDescription(getImpactDescription());
+        fields.setAcceptanceCriteria(getAcceptanceCriteria());
+
         // Issue Type
         fields.setIssuetype(new IssueType(getIssueTypeId(), getIssueTypeName()));
+
         // Project
         fields.setProject(new Project());
         fields.getProject().setKey(getProjectName());
+
         // Priority
         fields.setPriority(new Priority());
         fields.getPriority().setName(getPriorityName());
-        // Business Line and its region
-        fields.setBusinessLine(new BusinessLine());
-        fields.getBusinessLine().setValue(getBusinessLineName());
-        fields.getBusinessLine().setRegion(new Region());
-        fields.getBusinessLine().getRegion().setValue(getRegionName());
 
-//        ReportingDepartment reportingDepartment = new ReportingDepartment();
-//        reportingDepartment.setValue("Risk Management");
-//        List<ReportingDepartment> reportingDepartmentList = new ArrayList<ReportingDepartment>();
-//        reportingDepartmentList.add(reportingDepartment);
-//        fields.customfield22111 = reportingDepartmentList;
+        // Assignee
+        Assignee assignee = new Assignee(getAssigneeName());
+        fields.setAssignee(assignee);
+
+        // Data Element
+        String dataElement = getDataElement();
+        List<String> dataElementList = new ArrayList<>();
+        dataElementList.add(dataElement);
+        fields.setDataElement(dataElementList);
+
+        // Country
+        Country country = new Country();
+        country.setValue(getCountry());
+        List<Country> countryList = new ArrayList<>();
+        countryList.add(country);
+        fields.setCountry(countryList);
+
+        // Business Line
+        BusinessLine businessLine = new BusinessLine();
+        businessLine.setValue(getBusinessLineName());
+        List<BusinessLine> businessLineList = new ArrayList<BusinessLine>();
+        businessLineList.add(businessLine);
+        fields.setBusinessLine(businessLineList);
+
+        // Reporting Department
+        ReportingDepartment reportingDepartment = new ReportingDepartment();
+        reportingDepartment.setValue(getReportingDepartmentName());
+        fields.setReportingDepartment(reportingDepartment);
+
+        // Data Owner
+        DataOwner dataowner = new DataOwner();
+        dataowner.setValue(getDataOwner());
+        List<DataOwner> dataOwnerList = new ArrayList<>();
+        dataOwnerList.add(dataowner);
+        fields.setDataOwner(dataOwnerList);
 
         getLogging().logDebug(procName, "issue type is >" + getIssueTypeName() +"<.");
 //        issue.getFields().setIssuetype(new nl.jacbeekers.jira.IssueType(getIssueType().getId(), getIssueType().getName()));
@@ -247,7 +280,7 @@ public class JiraManageIssue {
     }
 
     public void setReportingDepartmentName(String reportingDepartmentName) {
-        ReportingDepartmentName = reportingDepartmentName;
+        this.ReportingDepartmentName = reportingDepartmentName;
     }
 
     public void setCreatedIssueResponse(CreatedIssueResponse createdIssueResponse) {
@@ -274,6 +307,12 @@ public class JiraManageIssue {
         this.businessLineName = businessLineName;
     }
 
+    public String getAssigneeName() {
+        return assigneeName;
+    }
+    public void setAssigneeName(String assigneeName) {
+        this.assigneeName = assigneeName;
+    }
     public Assignee getAssignee() {
         return assignee;
     }
@@ -314,13 +353,9 @@ public class JiraManageIssue {
         this.country = country;
     }
 
-    public String getDataOwner() {
-        return dataOwner;
-    }
+    public String getDataOwner() {return dataOwner;}
 
-    public void setDataOwner(String dataOwner) {
-        this.dataOwner = dataOwner;
-    }
+    public void setDataOwner(String dataOwner) {this.dataOwner = dataOwner;}
 
     public Date getDueDate() {
         return dueDate;
@@ -328,14 +363,6 @@ public class JiraManageIssue {
 
     public void setDueDate(Date dueDate) {
         this.dueDate = dueDate;
-    }
-
-    public String getAssigneeName() {
-        return assigneeName;
-    }
-
-    public void setAssigneeName(String assigneeName) {
-        this.assigneeName = assigneeName;
     }
 
     public String getPriorityName() {
