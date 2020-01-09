@@ -67,7 +67,7 @@ public class Fields {
     public List<Object> versions = null;
     @SerializedName("issuelinks")
     @Expose
-    public List<Object> issuelinks = null;
+    public List<LinkedIssue> issuelinks = null;
     @SerializedName("customfield_21900")
     @Expose
     public Object customfield21900;
@@ -390,4 +390,7 @@ public class Fields {
     public void setCountry (List<Country> countryList) {
         this.customfield_20200 = countryList;
     }
+
+    public List<LinkedIssue> getIssuelinks() {return issuelinks; }
+    public void setIssuelinks(List<LinkedIssue> issuelinks) {this.issuelinks = issuelinks; }
 }

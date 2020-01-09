@@ -198,6 +198,8 @@ public class JiraMain {
         // Issue Type -
         jiraManagementIssue.setIssueTypeId("14500");
         jiraManagementIssue.setIssueTypeName("Data Attribute");
+        // Linked Issue
+        jiraManagementIssue.setLinkedIssue("DQIM-11620");
         // Due Date
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Date date = new Date();

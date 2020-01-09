@@ -40,6 +40,8 @@ public class JiraManageIssue {
     private String country;
     private String dataOwner;
     private Date dueDate;
+    private String linkedIssue;
+    private String body;
 
     private CreatedIssueResponse createdIssueResponse;
 
@@ -142,11 +144,20 @@ public class JiraManageIssue {
         dataOwnerList.add(dataowner);
         fields.setDataOwner(dataOwnerList);
 
+//        // Linked Issue
+//        LinkedIssue linkedIssue = new LinkedIssue(getLinkedIssue());
+//        List<LinkedIssue> linkedIssueList = new ArrayList<>();
+//        linkedIssueList.add(linkedIssue);
+//        fields.setIssuelinks(linkedIssueList);
+
+
         getLogging().logDebug(procName, "issue type is >" + getIssueTypeName() +"<.");
 //        issue.getFields().setIssuetype(new nl.jacbeekers.jira.IssueType(getIssueType().getId(), getIssueType().getName()));
 
         Gson gson = new Gson();
-        String body = gson.toJson(issue);
+        setBody(gson.toJson(issue));
+
+        getLogging().logDebug(procName, "Body is >" + getBody() + "<.");
 
         httpResponse = getJiraConnectivity().doPost(completeQueryURL, body);
         if(null == httpResponse) {
@@ -302,7 +313,6 @@ public class JiraManageIssue {
     public String getBusinessLineName() {
         return businessLineName;
     }
-
     public void setBusinessLineName(String businessLineName) {
         this.businessLineName = businessLineName;
     }
@@ -313,10 +323,10 @@ public class JiraManageIssue {
     public void setAssigneeName(String assigneeName) {
         this.assigneeName = assigneeName;
     }
+
     public Assignee getAssignee() {
         return assignee;
     }
-
     public void setAssignee(Assignee assignee) {
         this.assignee = assignee;
     }
@@ -324,15 +334,11 @@ public class JiraManageIssue {
     public String getDataElement() {
         return dataElement;
     }
-
     public void setDataElement(String dataElement) {
         this.dataElement = dataElement;
     }
 
-    public String getImpactDescription() {
-        return impactDescription;
-    }
-
+    public String getImpactDescription() {return impactDescription; }
     public void setImpactDescription(String impactDescription) {
         this.impactDescription = impactDescription;
     }
@@ -340,7 +346,6 @@ public class JiraManageIssue {
     public String getAcceptanceCriteria() {
         return acceptanceCriteria;
     }
-
     public void setAcceptanceCriteria(String acceptanceCriteria) {
         this.acceptanceCriteria = acceptanceCriteria;
     }
@@ -348,19 +353,16 @@ public class JiraManageIssue {
     public String getCountry() {
         return country;
     }
-
     public void setCountry(String country) {
         this.country = country;
     }
 
     public String getDataOwner() {return dataOwner;}
-
     public void setDataOwner(String dataOwner) {this.dataOwner = dataOwner;}
 
     public Date getDueDate() {
         return dueDate;
     }
-
     public void setDueDate(Date dueDate) {
         this.dueDate = dueDate;
     }
@@ -368,7 +370,6 @@ public class JiraManageIssue {
     public String getPriorityName() {
         return priorityName;
     }
-
     public void setPriorityName(String priorityName) {
         this.priorityName = priorityName;
     }
@@ -376,7 +377,6 @@ public class JiraManageIssue {
     public Region getRegion() {
         return this.region;
     }
-
     public void setRegion(Region region) {
         this.region = region;
     }
@@ -384,8 +384,13 @@ public class JiraManageIssue {
     public String getRegionName() {
         return regionName;
     }
-
     public void setRegionName(String regionName) {
         this.regionName = regionName;
     }
+
+    public String getLinkedIssue() {return linkedIssue; }
+    public void setLinkedIssue(String linkedIssue) {this.linkedIssue = linkedIssue; }
+
+    public String getBody() {return body; }
+    public void setBody(String body) {this.body = body; }
 }
