@@ -26,7 +26,7 @@ package nl.jacbeekers;
 
 import org.apache.commons.cli.*;
 import org.apache.http.HttpStatus;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -41,14 +41,14 @@ public class JiraMain {
     private static String password;
     private static String queryURL;
     private static String action;
-    private static String proxyHostname=null;
-    private static int proxyPortnumber=0;
+    private static String proxyHostname = null;
+    private static int proxyPortnumber = 0;
     private static String queryForIssue;
-    private static org.apache.log4j.Logger logger = Logger.getLogger(JiraMain.class.getName());
+    private static org.apache.logging.log4j.Logger logger = LogManager.getLogger(JiraMain.class.getName());
 
-    public static void usage(org.apache.log4j.Logger logger) {
+    public static void usage(org.apache.logging.log4j.Logger logger) {
         logger.info("Usage:");
-        logger.info(JiraMain.class.getName() +" <loginURL> <username> <password> <queryURL> [proxyHostname] [proxyPortnumber] <action>" );
+        logger.info(JiraMain.class.getName() + " <loginURL> <username> <password> <queryURL> [proxyHostname] [proxyPortnumber] <action>");
         logger.info("where:");
         logger.info("  <loginURL> is the complete login URL for Jira, including http(s), hostname, port.");
         logger.info("  <username> is the Jira username to be used.");
@@ -73,26 +73,26 @@ public class JiraMain {
         options.addOption(new Option("k", "issuekey", true, "Issue key to search for. Only if action=query"));
 
         CommandLineParser parser = new DefaultParser();
-        CommandLine cmd = parser.parse( options, args);
+        CommandLine cmd = parser.parse(options, args);
 
         loginURL = cmd.getOptionValue('l');
         username = cmd.getOptionValue('u');
         password = cmd.getOptionValue('p');
         queryURL = cmd.getOptionValue('q');
         action = cmd.getOptionValue('a');
-        proxyHostname=cmd.getOptionValue('x');
-        proxyPortnumber= Integer.parseInt(cmd.getOptionValue('1'));
+        proxyHostname = cmd.getOptionValue('x');
+        proxyPortnumber = Integer.parseInt(cmd.getOptionValue('1'));
         queryForIssue = cmd.getOptionValue('k');
 
-        if(null == action | null == loginURL | null == username | null == password | null == queryURL) {
+        if (null == action | null == loginURL | null == username | null == password | null == queryURL) {
             HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp( "JiraMain", options );
+            formatter.printHelp("JiraMain", options);
             System.exit(3);
         }
 
-        switch(action) {
+        switch (action) {
             case "query":
-                    runQuery();
+                runQuery();
                 break;
             case "create":
                 createIssue();
@@ -113,39 +113,39 @@ public class JiraMain {
     }
 
     public static void runQuery() throws IOException {
-        JiraCall jiraCall =null;
+        JiraCall jiraCall = null;
         jiraCall = new JiraCall();
         jiraCall.setQueryURL(queryURL);
         jiraCall.setLoginURL(loginURL);
 
-            //Create HttpClient
-            System.out.println("Getting http client...");
-            jiraCall.createHttpClient(proxyHostname, proxyPortnumber);
-            System.out.println("Logging in...");
-            //login
-            jiraCall.login(username, password);
-            logger.info(jiraCall.getLogging().getResultCode());
-            logger.info(jiraCall.getLogging().getResultMessage());
+        //Create HttpClient
+        System.out.println("Getting http client...");
+        jiraCall.createHttpClient(proxyHostname, proxyPortnumber);
+        System.out.println("Logging in...");
+        //login
+        jiraCall.login(username, password);
+        logger.info(jiraCall.getLogging().getResultCode());
+        logger.info(jiraCall.getLogging().getResultMessage());
 
-            if (!Constants.OK.equals(jiraCall.getLogging().getResultCode())) {
-                return;
-            }
-            String projectName ="DQIM";
-            jiraCall.setProjectName(projectName);
+        if (!Constants.OK.equals(jiraCall.getLogging().getResultCode())) {
+            return;
+        }
+        String projectName = "DQIM";
+        jiraCall.setProjectName(projectName);
 
-            System.out.println("Getting issue type...");
-            String issueTypeId = "14500";
-            String issueTypeName ="Data Element";
-            jiraCall.setIssueTypeId(issueTypeId);
-            jiraCall.setIssueTypeName(issueTypeName);
+        System.out.println("Getting issue type...");
+        String issueTypeId = "14500";
+        String issueTypeName = "Data Element";
+        jiraCall.setIssueTypeId(issueTypeId);
+        jiraCall.setIssueTypeName(issueTypeName);
 
-            System.out.println("Query for issue >" + queryForIssue +"<...");
-            //Test environment
-            ArrayList<String> fields = new ArrayList<String>();
-            fields.add("status");
-            fields.add("summary");
-            int rc = jiraCall.queryJiraForIssue(queryForIssue, fields); // null = all fields
-            System.out.println("Query for Jira issue >" + queryForIssue + "< returned >" + rc + "<.");
+        System.out.println("Query for issue >" + queryForIssue + "<...");
+        //Test environment
+        ArrayList<String> fields = new ArrayList<String>();
+        fields.add("status");
+        fields.add("summary");
+        int rc = jiraCall.queryJiraForIssue(queryForIssue, fields); // null = all fields
+        System.out.println("Query for Jira issue >" + queryForIssue + "< returned >" + rc + "<.");
 
 //        jiraCall.queryJiraForIssue(queryForIssue, null); // null = all fields
 //            logger.info(jiraCall.getLogging().getResultCode());
@@ -215,9 +215,9 @@ public class JiraMain {
         jiraManagementIssue.getJiraConnectivity().setProxyPortnumber(proxyPortnumber);
         jiraManagementIssue.getJiraConnectivity().login(username, password);
 //        jiraManagementIssue.setHttpClient(jiraManagementIssue.getJiraConnectivity().getHttpClient());
-       int rc = jiraManagementIssue.createIssue();
+        int rc = jiraManagementIssue.createIssue();
         if (rc == HttpStatus.SC_CREATED) {
-            System.out.println("Issue created with id >" + jiraManagementIssue.getCreatedIssueResponse().getId()+ "< and key >"
+            System.out.println("Issue created with id >" + jiraManagementIssue.getCreatedIssueResponse().getId() + "< and key >"
                     + jiraManagementIssue.getCreatedIssueResponse().getKey() + "<.");
         }
 

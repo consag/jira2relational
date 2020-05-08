@@ -7,7 +7,7 @@
 
     <groupId>nl.jacbeekers</groupId>
     <artifactId>jira2relational</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
     <properties>
             <jdk.version>1.8</jdk.version>
@@ -48,25 +48,27 @@
     <dependency>
         <groupId>com.atlassian.jira</groupId>
         <artifactId>jira-rest-java-client-core</artifactId>
-        <version>5.1.6</version>
+        <version>5.2.1</version>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/com.atlassian.jira/jira-rest-java-client-api -->
     <dependency>
         <groupId>com.atlassian.jira</groupId>
         <artifactId>jira-rest-java-client-api</artifactId>
-        <version>5.1.6</version>
+        <version>5.2.1</version>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/io.atlassian.fugue/fugue -->
-<!--    <dependency>
+    <dependency>
         <groupId>io.atlassian.fugue</groupId>
         <artifactId>fugue</artifactId>
         <version>4.7.2</version>
+        <scope>provided</scope>
     </dependency>
--->    <dependency>
-        <groupId>log4j</groupId>
-        <artifactId>log4j</artifactId>
-        <version>1.2.12</version>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
+    <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>2.13.2</version>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
@@ -126,5 +128,20 @@
 
 </dependencies>
 
+    <repositories>
+        <repository>
+            <id>atlassian-public</id>
+            <url>https://packages.atlassian.com/mvn/maven-external/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+        </repository>
+    </repositories>
 
 </project>
