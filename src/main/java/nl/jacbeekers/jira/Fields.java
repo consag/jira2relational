@@ -137,9 +137,9 @@ public class Fields {
     @SerializedName("issuetype")
     @Expose
     public IssueType issuetype;
-    @SerializedName("customfield_22111")
+    @SerializedName("customfield_22100")
     @Expose
-    public List<BusinessLine> customfield_22111;
+    public List<BusinessLine> customfield_22100;
     @SerializedName("customfield_19000")
     @Expose
     public Object customfield19000;
@@ -332,10 +332,10 @@ public class Fields {
     }
 
     public void setBusinessLine(List<BusinessLine> businessLineList) {
-        this.customfield_22111 = businessLineList;
+        this.customfield_22100 = businessLineList;
     }
     public List<BusinessLine> getBusinessLine() {
-        return this.customfield_22111;
+        return this.customfield_22100;
     }
 
     public void setReportingDepartment(ReportingDepartment reportingDepartment) {

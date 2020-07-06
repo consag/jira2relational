@@ -68,7 +68,7 @@ public class JiraMain {
         options.addOption(new Option("u", "user", true, "Username"));
         options.addOption(new Option("p", "password", true, "user password"));
         options.addOption(new Option("x", "proxy", true, "Proxy hostname"));
-        options.addOption(new Option("1", "proxyport", true, "Proxy port number"));
+        options.addOption(new Option("y", "proxyport", true, "Proxy port number"));
         options.addOption(new Option("a", "action", true, "Action to conduct. Has to be >query< or >create<."));
         options.addOption(new Option("k", "issuekey", true, "Issue key to search for. Only if action=query"));
 
@@ -81,7 +81,7 @@ public class JiraMain {
         queryURL = cmd.getOptionValue('q');
         action = cmd.getOptionValue('a');
         proxyHostname=cmd.getOptionValue('x');
-        proxyPortnumber= Integer.parseInt(cmd.getOptionValue('1'));
+        proxyPortnumber= Integer.parseInt(cmd.getOptionValue('y'));
         queryForIssue = cmd.getOptionValue('k');
 
         if(null == action | null == loginURL | null == username | null == password | null == queryURL) {
@@ -92,7 +92,7 @@ public class JiraMain {
 
         switch(action) {
             case "query":
-                    runQuery();
+                runQuery();
                 break;
             case "create":
                 createIssue();
@@ -130,7 +130,7 @@ public class JiraMain {
             if (!Constants.OK.equals(jiraCall.getLogging().getResultCode())) {
                 return;
             }
-            String projectName ="DQIM";
+            String projectName ="TRAIN";
             jiraCall.setProjectName(projectName);
 
             System.out.println("Getting issue type...");
@@ -171,50 +171,60 @@ public class JiraMain {
     }
 
     public static void createIssue() throws IOException {
-        // Regardless of the above outcome, create a Jira issue
+
         JiraManageIssue jiraManagementIssue = new JiraManageIssue(proxyHostname, proxyPortnumber);
-        jiraManagementIssue.setProjectName("DQIM");
-
-        jiraManagementIssue.setSummary("IDQ Jira API tryout");
-        jiraManagementIssue.setDescription("Dummy item from IDQ for API testing purpose.");
-        //if CDE then high, else medium
-        jiraManagementIssue.setPriorityName("High");
-        //business line depends on LoGS dataset - customfield_22111
-        jiraManagementIssue.setBusinessLineName("Retail Banking");
-        // customfield_22111 or customfield_21200
-        jiraManagementIssue.setReportingDepartmentName("Commercial Banking");
-        // Assignee = Delegated Data Owner
-        jiraManagementIssue.setAssigneeName("");
-        // Data Element = Data Attribute - customfield_19802
-        jiraManagementIssue.setDataElement("SBI code");
-        // Impact Description - customfield_15702
-        jiraManagementIssue.setImpactDescription("Please specify it");
-        // Acceptance Criteria = Axon Rule description - customfield_10502
-        jiraManagementIssue.setAcceptanceCriteria("Please specify it properly");
-        // Country = "Netherlands" - customfield_20200
-        jiraManagementIssue.setCountry("Netherlands");
-        // Data Owner - customfield_20400
-        jiraManagementIssue.setDataOwner("Fred Bos");
-        // Issue Type -
-        jiraManagementIssue.setIssueTypeId("14500");
-        jiraManagementIssue.setIssueTypeName("Data Attribute");
-        // Linked Issue
-        jiraManagementIssue.setLinkedIssue("DQIM-11620");
-        // Due Date
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        Date date = new Date();
-        System.out.println("Due date set to " + dateFormat.format(date));
-        jiraManagementIssue.setDueDate(date);
-
-
         jiraManagementIssue.getJiraConnectivity().setQueryURL(queryURL);
         jiraManagementIssue.getJiraConnectivity().setLoginURL(loginURL);
         jiraManagementIssue.getJiraConnectivity().setUsername(username);
         jiraManagementIssue.getJiraConnectivity().setPassword(password);
         jiraManagementIssue.getJiraConnectivity().setProxyHostname(proxyHostname);
         jiraManagementIssue.getJiraConnectivity().setProxyPortnumber(proxyPortnumber);
-        jiraManagementIssue.getJiraConnectivity().login(username, password);
 //        jiraManagementIssue.setHttpClient(jiraManagementIssue.getJiraConnectivity().getHttpClient());
+        jiraManagementIssue.getJiraConnectivity().login(username, password);
+
+        // Base info
+        jiraManagementIssue.setProjectName("TRAIN");
+
+        // Input for new issue
+        jiraManagementIssue.setSummary("Summary");
+
+        // Description
+        jiraManagementIssue.setDescription("Description");
+
+        //if CDE then high, else medium
+        jiraManagementIssue.setPriorityName("High");
+
+        //business line depends on LoGS dataset - customfield_21200
+        jiraManagementIssue.setBusinessLineName("Retail Banking");
+
+        // Reporting department name  or customfield_22100
+        jiraManagementIssue.setReportingDepartmentName("Commercial Banking");
+
+        // Assignee = Delegated Data Owner
+        jiraManagementIssue.setAssigneeName("");
+
+        // Data Element = Data Attribute - customfield_19802
+        jiraManagementIssue.setDataElement("SBI code");
+
+        // Impact Description - customfield_15702
+        jiraManagementIssue.setImpactDescription("Impact: Please specify it");
+
+        // Acceptance Criteria - customfield_10502 (Cannot be set while creating an issue)
+//        jiraManagementIssue.setAcceptanceCriteria("Acceptance: Please specify it properly");
+
+        // Country = "NL" - customfield_20200
+        jiraManagementIssue.setCountry("Netherlands");
+
+        // Data Owner - customfield unknown
+        jiraManagementIssue.setDataOwner("Fred Bos");
+
+        // Issue Type -
+        jiraManagementIssue.setIssueTypeId("14500");
+        jiraManagementIssue.setIssueTypeName("Data Attribute");
+
+        // Linked issue
+        jiraManagementIssue.setLinkedIssue("TRAIN-363");
+
        int rc = jiraManagementIssue.createIssue();
         if (rc == HttpStatus.SC_CREATED) {
             System.out.println("Issue created with id >" + jiraManagementIssue.getCreatedIssueResponse().getId()+ "< and key >"

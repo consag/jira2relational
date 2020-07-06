@@ -32,16 +32,20 @@ public class JiraManageIssue {
     private Region region;
     private String regionName;
     private String ReportingDepartmentName;
-    private Assignee assignee;
+//    private Assignee assignee;
     private String assigneeName;
     private String dataElement;
     private String impactDescription;
-    private String acceptanceCriteria;
+//    private String acceptanceCriteria;
     private String country;
     private String dataOwner;
-    private Date dueDate;
+//    private Date dueDate;
     private String linkedIssue;
     private String body;
+    private String linkBody;
+    private String createdIssue;
+    private Integer returncodeLinkedIssue;
+
 
     private CreatedIssueResponse createdIssueResponse;
 
@@ -66,6 +70,10 @@ public class JiraManageIssue {
             code = createIssuePostRequest();
             if( code == HttpStatus.SC_CREATED) {
                 getLogging().logDebug(procName, "Issue created.");
+     // Link issues when an old issue already exists
+                if(null!=getLinkedIssue()){
+                    code=linkIssuePostRequest();
+                }
             }
 
 
@@ -95,7 +103,7 @@ public class JiraManageIssue {
         fields.setSummary(getSummary());
         fields.setDescription(getDescription());
         fields.setImpactDescription(getImpactDescription());
-        fields.setAcceptanceCriteria(getAcceptanceCriteria());
+//        fields.setAcceptanceCriteria(getAcceptanceCriteria());
 
         // Issue Type
         fields.setIssuetype(new IssueType(getIssueTypeId(), getIssueTypeName()));
@@ -174,6 +182,7 @@ public class JiraManageIssue {
             case HttpStatus.SC_CREATED:
                 getLogging().logDebug(procName, "Issue created.");
                 setCreatedIssueResponse(retrieveCreatedIssueResponse(httpResponse));
+                setCreatedIssue(getCreatedIssueResponse().getKey());
                 break;
             default:
                 getLogging().logError(Constants.CREATEISSUE_FAILED, "Create issue returned HTTP error >" + code + "<.");
@@ -188,6 +197,65 @@ public class JiraManageIssue {
 
         return code;
     }
+
+    private int linkIssuePostRequest(){
+        String procName = "linkIssuePostRequest";
+        CloseableHttpResponse httpResponse;
+        String completeQueryURL = jiraConnectivity.getQueryURL()+"/issueLink/";
+
+//Constructingtheissuelink
+//CodetranslatesfromprovidedattributestoneededJava/Jiraattributes
+        IssueLink issueLink = new IssueLink();
+
+//Linktype
+        issueLink.setType(new LinkType());
+        issueLink.getType().setName("Relates");
+
+//InwardIssue
+        issueLink.setInwardIssue(new InwardIssue());
+        issueLink.getInwardIssue().setKey(getCreatedIssue());
+
+//OutwardIssue
+        issueLink.setOutwardIssue(new OutwardIssue());
+        issueLink.getOutwardIssue().setKey(getLinkedIssue());
+
+        getLogging().logDebug(procName,"linkingissues>"+getCreatedIssue()+"<and>"+getLinkedIssue()+"<.");
+
+        Gson gson = new Gson();
+        setLinkBody(gson.toJson(issueLink));
+
+        getLogging().logDebug(procName,"Bodyis>"+getLinkBody()+"<.");
+
+        httpResponse = getJiraConnectivity().doPost(completeQueryURL,linkBody);
+        if (null == httpResponse){
+            getLogging().logError(Constants.LINKISSUE_FAILED,"getJiraConnectivity.doPostreturned>null<.");
+            return HttpStatus.SC_NO_CONTENT;
+        }
+
+        int code = getJiraConnectivity().processHttpResponse(httpResponse);
+        setReturncodeLinkedIssue(code);
+        switch(code){
+            case HttpStatus.SC_OK:
+                break;
+            case HttpStatus.SC_NOT_FOUND:
+                break;
+            case HttpStatus.SC_CREATED:
+                getLogging().logDebug(procName,"Linkcreated.");
+            break;
+            default:
+                getLogging().logError(Constants.LINKISSUE_FAILED,"CreatelinkreturnedHTTPerror>"+code+"<.");
+                break;
+        }
+
+        try {
+            httpResponse.close();
+        } catch(IOException e) {
+            getLogging().logWarning("Could not close create issue response. Exception: " + e.toString());
+        }
+
+        return code;
+    }
+
 
     public CreatedIssueResponse retrieveCreatedIssueResponse(CloseableHttpResponse httpResponse) {
         CreatedIssueResponse createdIssueResponse = null;
@@ -205,16 +273,15 @@ public class JiraManageIssue {
         return createdIssueResponse;
     }
 
+
+
     // getters and setters
     private void setLogging(Logging logging) {
         this.logging = logging;
     }
     public Logging getLogging() { return this.logging; }
 
-    public JiraConnectivity getJiraConnectivity() {
-        return jiraConnectivity;
-    }
-
+    public JiraConnectivity getJiraConnectivity() {return jiraConnectivity;}
     private void setJiraConnectivity(JiraConnectivity jiraConnectivity) {
         this.jiraConnectivity = jiraConnectivity;
     }
@@ -222,7 +289,6 @@ public class JiraManageIssue {
     public String getProxyHostname() {
         return proxyHostname;
     }
-
     public void setProxyHostname(String proxyHostname) {
         this.proxyHostname = proxyHostname;
     }
@@ -230,7 +296,6 @@ public class JiraManageIssue {
     public int getProxyPortnumber() {
         return proxyPortnumber;
     }
-
     public void setProxyPortnumber(int proxyPortnumber) {
         this.proxyPortnumber = proxyPortnumber;
     }
@@ -246,42 +311,33 @@ public class JiraManageIssue {
     public String getProjectName() {
         return projectName;
     }
-
     public void setProjectName(String projectName) {
         this.projectName = projectName;
     }
 
-    public nl.jacbeekers.jira.IssueType getIssueType() {
+    public IssueType getIssueType() {
         return this.issueType;
     }
-
     public void setIssueType(IssueType issueType) {
         this.issueType = issueType;
     }
-    public void setIssueTypeId(String id) {
-        this.issueTypeId = id;
-    }
+
     public String getIssueTypeId() {
         return this.issueTypeId;
+    }
+    public void setIssueTypeId(String id) {this.issueTypeId = id;}
+
+    public String getIssueTypeName() {
+        return this.issueTypeName;
     }
     public void setIssueTypeName(String name) {
         this.issueTypeName = name;
     }
-    public String getIssueTypeName() {
-        return this.issueTypeName;
-    }
-    public void setSummary(String summary) {
-        this.summary = summary;
-    }
 
-    public String getSummary() {
-        return summary;
-    }
+    public String getSummary() {return summary;}
+    public void setSummary(String summary) {this.summary = summary;}
 
-    public String getDescription() {
-        return description;
-    }
-
+    public String getDescription() {return description;}
     public void setDescription(String description) {
         this.description = description;
     }
@@ -289,30 +345,21 @@ public class JiraManageIssue {
     public String getReportingDepartmentName() {
         return ReportingDepartmentName;
     }
-
-    public void setReportingDepartmentName(String reportingDepartmentName) {
-        this.ReportingDepartmentName = reportingDepartmentName;
-    }
-
-    public void setCreatedIssueResponse(CreatedIssueResponse createdIssueResponse) {
-        this.createdIssueResponse = createdIssueResponse;
-    }
+    public void setReportingDepartmentName(String reportingDepartmentName) {this.ReportingDepartmentName = reportingDepartmentName;}
 
     public CreatedIssueResponse getCreatedIssueResponse() {
         return createdIssueResponse;
     }
+    public void setCreatedIssueResponse(CreatedIssueResponse createdIssueResponse) {this.createdIssueResponse = createdIssueResponse;}
 
     public Priority getPriority() {
         return priority;
     }
-
     public void setPriority(Priority priority) {
         this.priority = priority;
     }
 
-    public String getBusinessLineName() {
-        return businessLineName;
-    }
+    public String getBusinessLineName() {return businessLineName;}
     public void setBusinessLineName(String businessLineName) {
         this.businessLineName = businessLineName;
     }
@@ -322,13 +369,6 @@ public class JiraManageIssue {
     }
     public void setAssigneeName(String assigneeName) {
         this.assigneeName = assigneeName;
-    }
-
-    public Assignee getAssignee() {
-        return assignee;
-    }
-    public void setAssignee(Assignee assignee) {
-        this.assignee = assignee;
     }
 
     public String getDataElement() {
@@ -343,13 +383,6 @@ public class JiraManageIssue {
         this.impactDescription = impactDescription;
     }
 
-    public String getAcceptanceCriteria() {
-        return acceptanceCriteria;
-    }
-    public void setAcceptanceCriteria(String acceptanceCriteria) {
-        this.acceptanceCriteria = acceptanceCriteria;
-    }
-
     public String getCountry() {
         return country;
     }
@@ -360,13 +393,6 @@ public class JiraManageIssue {
     public String getDataOwner() {return dataOwner;}
     public void setDataOwner(String dataOwner) {this.dataOwner = dataOwner;}
 
-    public Date getDueDate() {
-        return dueDate;
-    }
-    public void setDueDate(Date dueDate) {
-        this.dueDate = dueDate;
-    }
-
     public String getPriorityName() {
         return priorityName;
     }
@@ -374,23 +400,18 @@ public class JiraManageIssue {
         this.priorityName = priorityName;
     }
 
-    public Region getRegion() {
-        return this.region;
-    }
-    public void setRegion(Region region) {
-        this.region = region;
-    }
-
-    public String getRegionName() {
-        return regionName;
-    }
-    public void setRegionName(String regionName) {
-        this.regionName = regionName;
-    }
-
     public String getLinkedIssue() {return linkedIssue; }
     public void setLinkedIssue(String linkedIssue) {this.linkedIssue = linkedIssue; }
 
     public String getBody() {return body; }
     public void setBody(String body) {this.body = body; }
+
+    public String getLinkBody() {return linkBody;}
+    public void setLinkBody(String linkBody) {this.linkBody = linkBody;}
+
+    public String getCreatedIssue() {return createdIssue;}
+    public void setCreatedIssue(String createdIssue) {this.createdIssue = createdIssue;}
+
+    public Integer getReturncodeLinkedIssue() {return returncodeLinkedIssue;}
+    public void setReturncodeLinkedIssue(Integer returncodeLinkedIssue) {this.returncodeLinkedIssue = returncodeLinkedIssue;}
 }
