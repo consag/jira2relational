@@ -48,6 +48,8 @@ public class JiraManageIssue {
 
 
     private CreatedIssueResponse createdIssueResponse;
+    private Integer errorCode;
+    private String errorText;
 
     public JiraManageIssue() {
         setProxyHostname(null);
@@ -152,12 +154,11 @@ public class JiraManageIssue {
         dataOwnerList.add(dataowner);
         fields.setDataOwner(dataOwnerList);
 
-//        // Linked Issue
+        // Linked Issue
 //        LinkedIssue linkedIssue = new LinkedIssue(getLinkedIssue());
 //        List<LinkedIssue> linkedIssueList = new ArrayList<>();
 //        linkedIssueList.add(linkedIssue);
 //        fields.setIssuelinks(linkedIssueList);
-
 
         getLogging().logDebug(procName, "issue type is >" + getIssueTypeName() +"<.");
 //        issue.getFields().setIssuetype(new nl.jacbeekers.jira.IssueType(getIssueType().getId(), getIssueType().getName()));
@@ -183,6 +184,13 @@ public class JiraManageIssue {
                 getLogging().logDebug(procName, "Issue created.");
                 setCreatedIssueResponse(retrieveCreatedIssueResponse(httpResponse));
                 setCreatedIssue(getCreatedIssueResponse().getKey());
+                break;
+            case HttpStatus.SC_BAD_REQUEST:
+                // Make sure the error gets retrieved by the caller but the process continues
+                getLogging().logError(Constants.CREATEISSUE_FAILED, "Create issue returned HTTP error >" + code + "<.");
+                setErrorCode(code);
+                setError(retrieveCreatedIssueError(httpResponse));
+                code = HttpStatus.SC_OK;
                 break;
             default:
                 getLogging().logError(Constants.CREATEISSUE_FAILED, "Create issue returned HTTP error >" + code + "<.");
@@ -256,7 +264,6 @@ public class JiraManageIssue {
         return code;
     }
 
-
     public CreatedIssueResponse retrieveCreatedIssueResponse(CloseableHttpResponse httpResponse) {
         CreatedIssueResponse createdIssueResponse = null;
         //{"id":"2772602","key":"DQIM-11597","self":"https://jira.bb8-ta.aws.abnamro.org/rest/api/latest/issue/2772602"}
@@ -273,88 +280,85 @@ public class JiraManageIssue {
         return createdIssueResponse;
     }
 
-
+    public String retrieveCreatedIssueError(CloseableHttpResponse httpResponse) {
+        //{"errorMessage": [], "errors": "assignee": "User 'df' does not exist."}
+        HttpEntity httpEntity = httpResponse.getEntity();
+        String resultString = "Unknown error occurred.";
+        try {
+            resultString = EntityUtils.toString(httpEntity);
+        } catch(IOException e) {
+            getLogging().logError(Constants.CREATEISSUE_FAILED, "Issue not created and unable to interpret the error. Exception: " + e.toString());
+        }
+        return resultString;
+    }
 
     // getters and setters
+    public Logging getLogging() { return this.logging; }
     private void setLogging(Logging logging) {
         this.logging = logging;
     }
-    public Logging getLogging() { return this.logging; }
 
     public JiraConnectivity getJiraConnectivity() {return jiraConnectivity;}
     private void setJiraConnectivity(JiraConnectivity jiraConnectivity) {
         this.jiraConnectivity = jiraConnectivity;
     }
 
-    public String getProxyHostname() {
-        return proxyHostname;
-    }
+    public String getProxyHostname() { return proxyHostname; }
     public void setProxyHostname(String proxyHostname) {
         this.proxyHostname = proxyHostname;
     }
 
-    public int getProxyPortnumber() {
-        return proxyPortnumber;
-    }
+    public int getProxyPortnumber() { return proxyPortnumber; }
     public void setProxyPortnumber(int proxyPortnumber) {
         this.proxyPortnumber = proxyPortnumber;
     }
 
-    public CloseableHttpClient getHttpClient() {
-        return this.httpClient;
-    }
-
+    public CloseableHttpClient getHttpClient() { return this.httpClient; }
     public void setHttpClient(CloseableHttpClient httpClient) {
         this.httpClient = httpClient;
     }
 
-    public String getProjectName() {
-        return projectName;
-    }
+    public String getProjectName() { return projectName; }
     public void setProjectName(String projectName) {
         this.projectName = projectName;
     }
 
-    public IssueType getIssueType() {
-        return this.issueType;
-    }
+    public IssueType getIssueType() { return this.issueType; }
     public void setIssueType(IssueType issueType) {
         this.issueType = issueType;
     }
 
-    public String getIssueTypeId() {
-        return this.issueTypeId;
+    public String getIssueTypeId() { return this.issueTypeId; }
+    public void setIssueTypeId(String id) {
+        this.issueTypeId = id;
     }
-    public void setIssueTypeId(String id) {this.issueTypeId = id;}
 
-    public String getIssueTypeName() {
-        return this.issueTypeName;
-    }
+    public String getIssueTypeName() { return this.issueTypeName; }
     public void setIssueTypeName(String name) {
         this.issueTypeName = name;
     }
 
     public String getSummary() {return summary;}
-    public void setSummary(String summary) {this.summary = summary;}
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
 
     public String getDescription() {return description;}
     public void setDescription(String description) {
         this.description = description;
     }
 
-    public String getReportingDepartmentName() {
-        return ReportingDepartmentName;
+    public String getReportingDepartmentName() { return ReportingDepartmentName; }
+    public void setReportingDepartmentName(String reportingDepartmentName) {
+        this.ReportingDepartmentName = reportingDepartmentName;
     }
-    public void setReportingDepartmentName(String reportingDepartmentName) {this.ReportingDepartmentName = reportingDepartmentName;}
 
-    public CreatedIssueResponse getCreatedIssueResponse() {
-        return createdIssueResponse;
+    public CreatedIssueResponse getCreatedIssueResponse() { return createdIssueResponse; }
+    public void setCreatedIssueResponse(CreatedIssueResponse createdIssueResponse) {
+        this.createdIssueResponse = createdIssueResponse;
     }
-    public void setCreatedIssueResponse(CreatedIssueResponse createdIssueResponse) {this.createdIssueResponse = createdIssueResponse;}
 
-    public Priority getPriority() {
-        return priority;
-    }
+    public Priority getPriority() { return priority; }
     public void setPriority(Priority priority) {
         this.priority = priority;
     }
@@ -364,16 +368,12 @@ public class JiraManageIssue {
         this.businessLineName = businessLineName;
     }
 
-    public String getAssigneeName() {
-        return assigneeName;
-    }
+    public String getAssigneeName() { return assigneeName; }
     public void setAssigneeName(String assigneeName) {
         this.assigneeName = assigneeName;
     }
 
-    public String getDataElement() {
-        return dataElement;
-    }
+    public String getDataElement() { return dataElement; }
     public void setDataElement(String dataElement) {
         this.dataElement = dataElement;
     }
@@ -383,35 +383,54 @@ public class JiraManageIssue {
         this.impactDescription = impactDescription;
     }
 
-    public String getCountry() {
-        return country;
-    }
+    public String getCountry() { return country; }
     public void setCountry(String country) {
         this.country = country;
     }
 
     public String getDataOwner() {return dataOwner;}
-    public void setDataOwner(String dataOwner) {this.dataOwner = dataOwner;}
-
-    public String getPriorityName() {
-        return priorityName;
+    public void setDataOwner(String dataOwner) {
+        this.dataOwner = dataOwner;
     }
+
+    public String getPriorityName() { return priorityName; }
     public void setPriorityName(String priorityName) {
         this.priorityName = priorityName;
     }
 
     public String getLinkedIssue() {return linkedIssue; }
-    public void setLinkedIssue(String linkedIssue) {this.linkedIssue = linkedIssue; }
+    public void setLinkedIssue(String linkedIssue) {
+        this.linkedIssue = linkedIssue;
+    }
 
     public String getBody() {return body; }
-    public void setBody(String body) {this.body = body; }
+    public void setBody(String body) {
+        this.body = body;
+    }
 
     public String getLinkBody() {return linkBody;}
-    public void setLinkBody(String linkBody) {this.linkBody = linkBody;}
+    public void setLinkBody(String linkBody) {
+        this.linkBody = linkBody;
+    }
 
-    public String getCreatedIssue() {return createdIssue;}
-    public void setCreatedIssue(String createdIssue) {this.createdIssue = createdIssue;}
+    public String getCreatedIssue() {return createdIssue; }
+    public void setCreatedIssue(String createdIssue) {
+        this.createdIssue = createdIssue;
+    }
+
+    public String getError() {return errorText; }
+    public void setError(String errorText) {
+        this.errorText = errorText;
+    }
+
+    public Integer getErrorCode() {return errorCode; }
+    public void setErrorCode(Integer errorCode) {
+        this.errorCode = errorCode;
+    }
 
     public Integer getReturncodeLinkedIssue() {return returncodeLinkedIssue;}
-    public void setReturncodeLinkedIssue(Integer returncodeLinkedIssue) {this.returncodeLinkedIssue = returncodeLinkedIssue;}
+    public void setReturncodeLinkedIssue(Integer returncodeLinkedIssue) {
+        this.returncodeLinkedIssue = returncodeLinkedIssue;
+    }
+
 }

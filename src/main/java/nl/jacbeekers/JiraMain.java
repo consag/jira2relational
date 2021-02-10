@@ -201,7 +201,7 @@ public class JiraMain {
         jiraManagementIssue.setReportingDepartmentName("Commercial Banking");
 
         // Assignee = Delegated Data Owner
-        jiraManagementIssue.setAssigneeName("");
+        jiraManagementIssue.setAssigneeName("aj");
 
         // Data Element = Data Attribute - customfield_19802
         jiraManagementIssue.setDataElement("SBI code");
