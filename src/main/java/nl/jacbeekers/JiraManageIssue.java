@@ -78,7 +78,6 @@ public class JiraManageIssue {
                 }
             }
 
-
             try {
                 getJiraConnectivity().getHttpClient().close();
             } catch(IOException e) {
@@ -190,7 +189,6 @@ public class JiraManageIssue {
                 getLogging().logError(Constants.CREATEISSUE_FAILED, "Create issue returned HTTP error >" + code + "<.");
                 setErrorCode(code);
                 setError(retrieveCreatedIssueError(httpResponse));
-                code = HttpStatus.SC_OK;
                 break;
             default:
                 getLogging().logError(Constants.CREATEISSUE_FAILED, "Create issue returned HTTP error >" + code + "<.");
@@ -353,11 +351,6 @@ public class JiraManageIssue {
         this.ReportingDepartmentName = reportingDepartmentName;
     }
 
-    public CreatedIssueResponse getCreatedIssueResponse() { return createdIssueResponse; }
-    public void setCreatedIssueResponse(CreatedIssueResponse createdIssueResponse) {
-        this.createdIssueResponse = createdIssueResponse;
-    }
-
     public Priority getPriority() { return priority; }
     public void setPriority(Priority priority) {
         this.priority = priority;
@@ -416,6 +409,11 @@ public class JiraManageIssue {
     public String getCreatedIssue() {return createdIssue; }
     public void setCreatedIssue(String createdIssue) {
         this.createdIssue = createdIssue;
+    }
+
+    public CreatedIssueResponse getCreatedIssueResponse() { return createdIssueResponse; }
+    public void setCreatedIssueResponse(CreatedIssueResponse createdIssueResponse) {
+        this.createdIssueResponse = createdIssueResponse;
     }
 
     public String getError() {return errorText; }

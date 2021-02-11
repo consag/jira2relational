@@ -201,7 +201,7 @@ public class JiraMain {
         jiraManagementIssue.setReportingDepartmentName("Commercial Banking");
 
         // Assignee = Delegated Data Owner
-        jiraManagementIssue.setAssigneeName("aj");
+        jiraManagementIssue.setAssigneeName("");
 
         // Data Element = Data Attribute - customfield_19802
         jiraManagementIssue.setDataElement("SBI code");
@@ -225,10 +225,20 @@ public class JiraMain {
         // Linked issue
         jiraManagementIssue.setLinkedIssue("TRAIN-363");
 
-       int rc = jiraManagementIssue.createIssue();
-        if (rc == HttpStatus.SC_CREATED) {
-            System.out.println("Issue created with id >" + jiraManagementIssue.getCreatedIssueResponse().getId()+ "< and key >"
-                    + jiraManagementIssue.getCreatedIssueResponse().getKey() + "<.");
+        int rc = jiraManagementIssue.createIssue();
+
+        switch (rc) {
+            case HttpStatus.SC_CREATED:
+                String issueID = jiraManagementIssue.getCreatedIssueResponse().getId();
+                String issueKey = jiraManagementIssue.getCreatedIssueResponse().getKey();
+                break;
+            case HttpStatus.SC_BAD_REQUEST:
+                Integer jiraRC = jiraManagementIssue.getErrorCode();
+                String jiraMessage = jiraManagementIssue.getError();
+                break;
+            default:
+                issueKey = "CREATION_FAILED";
+                break;
         }
 
     }
