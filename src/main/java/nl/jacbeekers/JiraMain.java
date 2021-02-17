@@ -27,6 +27,7 @@ package nl.jacbeekers;
 import org.apache.commons.cli.*;
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
+import org.checkerframework.checker.units.qual.C;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -172,6 +173,38 @@ public class JiraMain {
 
     public static void createIssue() throws IOException {
 
+        // Mimic input from mapplet untill java transformation.
+        // projectName = JiraProjectName
+        String projectName = "TRAIN";
+        // summary = MetricName_DTL
+        String summary = "official_addres_postcode_contains_special_characters";
+        // description = concatenation of different strings (here I use 'Description build from various other strings')
+        String description = "Description build from various other strings";
+        // priorityName = "High" (constant)
+        String PRIORITYNAME = "High";
+        // businessLineName = BUSINESSLINE
+        String businessLineName = "Innovation & Technology";
+        // reportingDepartmentName = BUSINESSLINE
+        String reportingDepartmentName = "Innovation & Technology";
+        // assigneeName = DELEGATE_DATA_OWNER
+        String assigneeName = "Ivar Kort";
+        // dataAttribute = METRIC_GROUP_NAME_DTL
+        String dataAttribute = "official_address_postcode";
+        // impactDescription = "Please specify" (constant)
+        String IMPACTDESCRIPTION = "Please specify";
+        // country = "Netherlands" (constant)
+        String COUNTRY = "Netherlands";
+        // dataOwnerName = DATA_OWNER
+        String dataOwnerName = "Daan Mens";
+        // issueTypeID = JiraIssueTypeID
+        String issueTypeID = "14500";
+        // issueTypeName = JiraIssueTypeName
+        String issueTypeName = "Data Element";
+        // jiraLinkedIssue = ToLinkToIssueID
+//        String jiraLinkedIssue = null;
+        String jiraLinkedIssue = "TRAIN-4";
+
+
         JiraManageIssue jiraManagementIssue = new JiraManageIssue(proxyHostname, proxyPortnumber);
         jiraManagementIssue.getJiraConnectivity().setQueryURL(queryURL);
         jiraManagementIssue.getJiraConnectivity().setLoginURL(loginURL);
@@ -183,47 +216,48 @@ public class JiraMain {
         jiraManagementIssue.getJiraConnectivity().login(username, password);
 
         // Base info
-        jiraManagementIssue.setProjectName("TRAIN");
+        jiraManagementIssue.setProjectName(projectName);
 
         // Input for new issue
-        jiraManagementIssue.setSummary("Summary");
+        jiraManagementIssue.setSummary(summary);
 
         // Description
-        jiraManagementIssue.setDescription("Description");
+        jiraManagementIssue.setDescription(description);
 
         //if CDE then high, else medium
-        jiraManagementIssue.setPriorityName("High");
+        jiraManagementIssue.setPriorityName(PRIORITYNAME);
 
         //business line depends on LoGS dataset - customfield_21200
-        jiraManagementIssue.setBusinessLineName("Retail Banking");
+        jiraManagementIssue.setBusinessLineName(businessLineName);
 
         // Reporting department name  or customfield_22100
-        jiraManagementIssue.setReportingDepartmentName("Commercial Banking");
+        jiraManagementIssue.setReportingDepartmentName(reportingDepartmentName);
 
         // Assignee = Delegated Data Owner
-        jiraManagementIssue.setAssigneeName("");
+//        jiraManagementIssue.setAssigneeName("");
+        jiraManagementIssue.setAssigneeName(assigneeName);
 
         // Data Element = Data Attribute - customfield_19802
-        jiraManagementIssue.setDataElement("SBI code");
+        jiraManagementIssue.setDataElement(dataAttribute);
 
         // Impact Description - customfield_15702
-        jiraManagementIssue.setImpactDescription("Impact: Please specify it");
+        jiraManagementIssue.setImpactDescription(IMPACTDESCRIPTION);
 
         // Acceptance Criteria - customfield_10502 (Cannot be set while creating an issue)
 //        jiraManagementIssue.setAcceptanceCriteria("Acceptance: Please specify it properly");
 
         // Country = "NL" - customfield_20200
-        jiraManagementIssue.setCountry("Netherlands");
+        jiraManagementIssue.setCountry(COUNTRY);
 
         // Data Owner - customfield unknown
-        jiraManagementIssue.setDataOwner("Fred Bos");
+        jiraManagementIssue.setDataOwner(dataOwnerName);
 
         // Issue Type -
-        jiraManagementIssue.setIssueTypeId("14500");
-        jiraManagementIssue.setIssueTypeName("Data Attribute");
+        jiraManagementIssue.setIssueTypeId(issueTypeID);
+        jiraManagementIssue.setIssueTypeName(issueTypeName);
 
         // Linked issue
-        jiraManagementIssue.setLinkedIssue("TRAIN-363");
+        jiraManagementIssue.setLinkedIssue(jiraLinkedIssue);
 
         int rc = jiraManagementIssue.createIssue();
 

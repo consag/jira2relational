@@ -186,7 +186,7 @@ public class JiraManageIssue {
                 break;
             case HttpStatus.SC_BAD_REQUEST:
                 // Make sure the error gets retrieved by the caller but the process continues
-                getLogging().logError(Constants.CREATEISSUE_FAILED, "Create issue returned HTTP error >" + code + "<.");
+                getLogging().logDebug(procName, "Create issue returned HTTP error >" + code + "<.");
                 setErrorCode(code);
                 setError(retrieveCreatedIssueError(httpResponse));
                 break;
