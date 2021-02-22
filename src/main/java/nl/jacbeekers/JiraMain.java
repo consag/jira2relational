@@ -187,7 +187,7 @@ public class JiraMain {
         // reportingDepartmentName = BUSINESSLINE
         String reportingDepartmentName = "Innovation & Technology";
         // assigneeName = DELEGATE_DATA_OWNER
-        String assigneeName = "Ivar Kort";
+        String assigneeName = "";
         // dataAttribute = METRIC_GROUP_NAME_DTL
         String dataAttribute = "official_address_postcode";
         // impactDescription = "Please specify" (constant)
@@ -195,7 +195,7 @@ public class JiraMain {
         // country = "Netherlands" (constant)
         String COUNTRY = "Netherlands";
         // dataOwnerName = DATA_OWNER
-        String dataOwnerName = "Daan Mens";
+        String dataOwnerName = "Ton Reurts";
         // issueTypeID = JiraIssueTypeID
         String issueTypeID = "14500";
         // issueTypeName = JiraIssueTypeName
@@ -269,7 +269,7 @@ public class JiraMain {
             case HttpStatus.SC_BAD_REQUEST:
                 Integer jiraRC = jiraManagementIssue.getErrorCode();
                 String jiraMessage = jiraManagementIssue.getError();
-                break;
+                    break;
             default:
                 issueKey = "CREATION_FAILED";
                 break;
