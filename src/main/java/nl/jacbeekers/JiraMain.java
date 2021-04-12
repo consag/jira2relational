@@ -195,7 +195,7 @@ public class JiraMain {
         // country = "Netherlands" (constant)
         String COUNTRY = "Netherlands";
         // dataOwnerName = DATA_OWNER
-        String dataOwnerName = "Ton Reurts";
+        String dataOwnerName = "Andrew Man";
         // issueTypeID = JiraIssueTypeID
         String issueTypeID = "14500";
         // issueTypeName = JiraIssueTypeName
@@ -261,7 +261,22 @@ public class JiraMain {
 
         int rc = jiraManagementIssue.createIssue();
 
+        String issueKey = "Creation failed";
         switch (rc) {
+            case HttpStatus.SC_CREATED:
+                try {
+                    String issueKey = jiraManagementIssue.getCreatedIssueResponse().getKey();
+                    break;
+                } catch (Exception e) {
+                    Integer jiraRC = jiraManagementIssue.getErrorCode();
+                    String jiraMessage = jiraManagementIssue.getError();
+                    break;
+                }
+            default:
+                issueKey = "Creation failed";
+                break;
+        }
+/*        switch (rc) {
             case HttpStatus.SC_CREATED:
                 String issueID = jiraManagementIssue.getCreatedIssueResponse().getId();
                 String issueKey = jiraManagementIssue.getCreatedIssueResponse().getKey();
@@ -274,7 +289,7 @@ public class JiraMain {
                 issueKey = "CREATION_FAILED";
                 break;
         }
-
+*/
     }
 
 }
