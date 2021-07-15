@@ -146,9 +146,9 @@ public class Fields {
     @SerializedName("timespent")
     @Expose
     public Object timespent;
-    @SerializedName("customfield_19802")
+    @SerializedName("customfield_24403")
     @Expose
-    public List<String> customfield_19802;
+    public List<String> customfield_24403;
     @SerializedName("project")
     @Expose
     public Project project;
@@ -363,10 +363,10 @@ public class Fields {
     }
 
     public void setDataElement(List<String> dataElementList) {
-        this.customfield_19802 = dataElementList;
+        this.customfield_24403 = dataElementList;
     }
     public List<String> getDataElement() {
-        return customfield_19802;
+        return customfield_24403;
     }
 
     public void setImpactDescription(String impactDescription) {

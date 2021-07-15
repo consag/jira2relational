@@ -265,7 +265,7 @@ public class JiraMain {
         switch (rc) {
             case HttpStatus.SC_CREATED:
                 try {
-                    String issueKey = jiraManagementIssue.getCreatedIssueResponse().getKey();
+                    issueKey = jiraManagementIssue.getCreatedIssueResponse().getKey();
                     break;
                 } catch (Exception e) {
                     Integer jiraRC = jiraManagementIssue.getErrorCode();
