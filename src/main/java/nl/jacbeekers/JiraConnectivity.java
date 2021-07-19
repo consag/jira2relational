@@ -49,7 +49,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -65,7 +65,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 public class JiraConnectivity {
-    private Logging logging = new Logging(Logger.getLogger(JiraConnectivity.class.getName()));
+    private Logging logging = new Logging(LogManager.getLogger(JiraConnectivity.class.getName()));
 
     // httpClient
     CloseableHttpClient httpClient;

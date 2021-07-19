@@ -7,7 +7,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import java.util.Date;
 import java.util.List;
 
 public class JiraManageIssue {
-    private Logging logging = new Logging(Logger.getLogger(JiraManageIssue.class.getName()));
+    private Logging logging = new Logging(LogManager.getLogger(JiraManageIssue.class.getName()));
     private JiraConnectivity jiraConnectivity = new JiraConnectivity();
     private String proxyHostname =null;
     private int proxyPortnumber =0;

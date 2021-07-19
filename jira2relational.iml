@@ -10,7 +10,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: com.atlassian.jira:jira-rest-java-client-core:5.1.6" level="project" />
+    <orderEntry type="library" name="Maven: com.atlassian.jira:jira-rest-java-client-core:5.2.1" level="project" />
     <orderEntry type="library" name="Maven: com.sun.jersey:jersey-client:1.19" level="project" />
     <orderEntry type="library" name="Maven: com.sun.jersey:jersey-core:1.19" level="project" />
     <orderEntry type="library" name="Maven: javax.ws.rs:jsr311-api:1.1.1" level="project" />
@@ -37,10 +37,12 @@
     <orderEntry type="library" name="Maven: io.atlassian.util.concurrent:atlassian-util-concurrent:4.0.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.5" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.10" level="project" />
-    <orderEntry type="library" name="Maven: com.atlassian.jira:jira-rest-java-client-api:5.1.6" level="project" />
+    <orderEntry type="library" name="Maven: com.atlassian.jira:jira-rest-java-client-api:5.2.1" level="project" />
     <orderEntry type="library" name="Maven: com.atlassian.httpclient:atlassian-httpclient-api:2.0.0" level="project" />
     <orderEntry type="library" name="Maven: com.google.code.findbugs:jsr305:3.0.0" level="project" />
-    <orderEntry type="library" name="Maven: log4j:log4j:1.2.12" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.atlassian.fugue:fugue:4.7.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-core:2.13.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-api:2.13.2" level="project" />
     <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.13" level="project" />
     <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.8.6" level="project" />
     <orderEntry type="library" name="Maven: commons-io:commons-io:2.6" level="project" />
