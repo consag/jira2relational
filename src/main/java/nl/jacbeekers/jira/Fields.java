@@ -137,18 +137,18 @@ public class Fields {
     @SerializedName("issuetype")
     @Expose
     public IssueType issuetype;
-    @SerializedName("customfield_22111")
+    @SerializedName("customfield_22100")
     @Expose
-    public List<BusinessLine> customfield_22111;
+    public List<BusinessLine> customfield_22100;
     @SerializedName("customfield_19000")
     @Expose
     public Object customfield19000;
     @SerializedName("timespent")
     @Expose
     public Object timespent;
-    @SerializedName("customfield_19802")
+    @SerializedName("customfield_24403")
     @Expose
-    public List<String> customfield_19802;
+    public List<String> customfield_24403;
     @SerializedName("project")
     @Expose
     public Project project;
@@ -332,10 +332,10 @@ public class Fields {
     }
 
     public void setBusinessLine(List<BusinessLine> businessLineList) {
-        this.customfield_22111 = businessLineList;
+        this.customfield_22100 = businessLineList;
     }
     public List<BusinessLine> getBusinessLine() {
-        return this.customfield_22111;
+        return this.customfield_22100;
     }
 
     public void setReportingDepartment(ReportingDepartment reportingDepartment) {
@@ -363,10 +363,10 @@ public class Fields {
     }
 
     public void setDataElement(List<String> dataElementList) {
-        this.customfield_19802 = dataElementList;
+        this.customfield_24403 = dataElementList;
     }
     public List<String> getDataElement() {
-        return customfield_19802;
+        return customfield_24403;
     }
 
     public void setImpactDescription(String impactDescription) {

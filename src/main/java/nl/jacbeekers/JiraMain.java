@@ -68,7 +68,7 @@ public class JiraMain {
         options.addOption(new Option("u", "user", true, "Username"));
         options.addOption(new Option("p", "password", true, "user password"));
         options.addOption(new Option("x", "proxy", true, "Proxy hostname"));
-        options.addOption(new Option("1", "proxyport", true, "Proxy port number"));
+        options.addOption(new Option("y", "proxyport", true, "Proxy port number"));
         options.addOption(new Option("a", "action", true, "Action to conduct. Has to be >query< or >create<."));
         options.addOption(new Option("k", "issuekey", true, "Issue key to search for. Only if action=query"));
 
@@ -81,7 +81,7 @@ public class JiraMain {
         queryURL = cmd.getOptionValue('q');
         action = cmd.getOptionValue('a');
         proxyHostname = cmd.getOptionValue('x');
-        proxyPortnumber = Integer.parseInt(cmd.getOptionValue('1'));
+        proxyPortnumber = Integer.parseInt(cmd.getOptionValue('y'));
         queryForIssue = cmd.getOptionValue('k');
 
         if (null == action | null == loginURL | null == username | null == password | null == queryURL) {
@@ -130,7 +130,7 @@ public class JiraMain {
         if (!Constants.OK.equals(jiraCall.getLogging().getResultCode())) {
             return;
         }
-        String projectName = "DQIM";
+        String projectName = "TRAIN";
         jiraCall.setProjectName(projectName);
 
         System.out.println("Getting issue type...");
@@ -173,7 +173,7 @@ public class JiraMain {
     public static void createIssue() throws IOException {
         // Regardless of the above outcome, create a Jira issue
         JiraManageIssue jiraManagementIssue = new JiraManageIssue(proxyHostname, proxyPortnumber);
-        jiraManagementIssue.setProjectName("DQIM");
+        jiraManagementIssue.setProjectName("TRAIN");
 
         jiraManagementIssue.setSummary("IDQ Jira API tryout");
         jiraManagementIssue.setDescription("Dummy item from IDQ for API testing purpose.");
@@ -185,12 +185,12 @@ public class JiraMain {
         jiraManagementIssue.setReportingDepartmentName("Commercial Banking");
         // Assignee = Delegated Data Owner
         jiraManagementIssue.setAssigneeName("");
-        // Data Element = Data Attribute - customfield_19802
+        // Data Element = Data Attribute - customfield_24403
         jiraManagementIssue.setDataElement("SBI code");
         // Impact Description - customfield_15702
         jiraManagementIssue.setImpactDescription("Please specify it");
-        // Acceptance Criteria = Axon Rule description - customfield_10502
-        jiraManagementIssue.setAcceptanceCriteria("Please specify it properly");
+        // Acceptance Criteria = Axon Rule description - customfield_10502 Cannot be set!!!
+        // jiraManagementIssue.setAcceptanceCriteria("Please specify it properly");
         // Country = "Netherlands" - customfield_20200
         jiraManagementIssue.setCountry("Netherlands");
         // Data Owner - customfield_20400
@@ -199,13 +199,12 @@ public class JiraMain {
         jiraManagementIssue.setIssueTypeId("14500");
         jiraManagementIssue.setIssueTypeName("Data Attribute");
         // Linked Issue
-        jiraManagementIssue.setLinkedIssue("DQIM-11620");
+        jiraManagementIssue.setLinkedIssue("TRAIN-4");
         // Due Date
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        Date date = new Date();
-        System.out.println("Due date set to " + dateFormat.format(date));
-        jiraManagementIssue.setDueDate(date);
-
+        // DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        // Date date = new Date();
+        // System.out.println("Due date set to " + dateFormat.format(date));
+        // jiraManagementIssue.setDueDate(date);
 
         jiraManagementIssue.getJiraConnectivity().setQueryURL(queryURL);
         jiraManagementIssue.getJiraConnectivity().setLoginURL(loginURL);
@@ -221,6 +220,35 @@ public class JiraMain {
                     + jiraManagementIssue.getCreatedIssueResponse().getKey() + "<.");
         }
 
+        String issueKey = "Creation failed";
+        switch (rc) {
+            case HttpStatus.SC_CREATED:
+                try {
+                    issueKey = jiraManagementIssue.getCreatedIssueResponse().getKey();
+                    break;
+                } catch (Exception e) {
+                    Integer jiraRC = jiraManagementIssue.getErrorCode();
+                    String jiraMessage = jiraManagementIssue.getError();
+                    break;
+                }
+            default:
+                issueKey = "Creation failed";
+                break;
+        }
+/*        switch (rc) {
+            case HttpStatus.SC_CREATED:
+                String issueID = jiraManagementIssue.getCreatedIssueResponse().getId();
+                String issueKey = jiraManagementIssue.getCreatedIssueResponse().getKey();
+                break;
+            case HttpStatus.SC_BAD_REQUEST:
+                Integer jiraRC = jiraManagementIssue.getErrorCode();
+                String jiraMessage = jiraManagementIssue.getError();
+                    break;
+            default:
+                issueKey = "CREATION_FAILED";
+                break;
+        }
+*/
     }
 
 }
