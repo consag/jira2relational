@@ -44,6 +44,7 @@ public class Constants {
     public static final String PROJECT_CHECK_FAILED = "API-005";
     public static final String ISSUETYPE_RETRIEVAL_FAILED = "API-006";
     public static final String CREATEISSUE_FAILED = "API-007";
+    public static final String LINKISSUE_FAILED = "API-008";
 
     Map results = new HashMap();
     public static Map<String, String> result;
@@ -61,6 +62,7 @@ public class Constants {
         result.put(PROJECT_CHECK_FAILED, "GET request to check project key failed.");
         result.put(ISSUETYPE_RETRIEVAL_FAILED, "GET request to retrieve Project Issue Types failed.");
         result.put(CREATEISSUE_FAILED, "Create issue failed.");
+        result.put(LINKISSUE_FAILED, "Linking issues failed.");
     }
 
     //true/false
