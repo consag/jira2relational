@@ -81,7 +81,11 @@ public class JiraMain {
         queryURL = cmd.getOptionValue('q');
         action = cmd.getOptionValue('a');
         proxyHostname = cmd.getOptionValue('x');
-        proxyPortnumber = Integer.parseInt(cmd.getOptionValue('y'));
+        if (null == cmd.getOptionValue('y')) {
+            proxyPortnumber = 8080;
+        } else {
+            proxyPortnumber = Integer.parseInt(cmd.getOptionValue('y'));
+        }
         queryForIssue = cmd.getOptionValue('k');
 
         if (null == action | null == loginURL | null == username | null == password | null == queryURL) {
