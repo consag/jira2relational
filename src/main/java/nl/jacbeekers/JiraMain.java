@@ -184,9 +184,9 @@ public class JiraMain {
         //if CDE then high, else medium
         jiraManagementIssue.setPriorityName("High");
         //business line depends on LoGS dataset - customfield_22111
-        jiraManagementIssue.setBusinessLineName("Retail Banking");
+        jiraManagementIssue.setBusinessLineName("Innovation & Technology");
         // customfield_22111 or customfield_21200
-        jiraManagementIssue.setReportingDepartmentName("Commercial Banking");
+        jiraManagementIssue.setReportingDepartmentName("Innovation & Technology");
         // Assignee = Delegated Data Owner
         jiraManagementIssue.setAssigneeName("");
         // Data Element = Data Attribute - customfield_24403
